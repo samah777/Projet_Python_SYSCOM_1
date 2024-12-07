@@ -97,7 +97,7 @@ class Pikachu(Unit):
                         pygame.draw.rect(
                             screen, BLUE,
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                            2  # Épaisseur de la bordure
+                            10  # Épaisseur de la bordure
                         )
 
     def draw(self, screen):
