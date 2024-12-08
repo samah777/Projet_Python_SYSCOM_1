@@ -95,7 +95,7 @@ class Pikachu(Unit):
                     target_y = self.y + dy
                     if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
                         pygame.draw.rect(
-                            screen, BLUE,
+                            screen, (255, 255, 0),
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                             10  # Épaisseur de la bordure
                         )
