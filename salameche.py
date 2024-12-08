@@ -1,6 +1,7 @@
 import pygame
 from constante import *
 from unit import Unit
+from vision import *
 
 class Salameche(Unit):
     """

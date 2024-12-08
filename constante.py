@@ -12,4 +12,5 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 x=13
 GREEN = (0, 255, 0)
+Trap_damage=5
 
