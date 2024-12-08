@@ -31,9 +31,34 @@ class Qulbutoke(Unit):
         icon_path = 'assets/qulbutoke.png'
         self.icon = pygame.image.load(icon_path)  # Charger l'image depuis le chemin
         self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionner
-
+        self.transformed_icon = None
+     
+        
+        
+        self.transformation_sound = None
         # Appeler le constructeur parent avec une icône spécifique à Qulbutoké
-        super().__init__(x, y, health, health_max, attack_power, velocity, team, self.icon)
+        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+
+
+    def transform(self):
+        """Transforme l'unité en une version plus puissante."""
+        if self.transformed_icon and not self.is_transformed:
+            print(f"quolbutoqe unit at ({self.x}, {self.y}) transforms!")
+            self.icon = self.transformed_icon  # Changer l'icône
+            # self.attack += 2  # Exemple : augmenter la puissance d'attaque
+            # self.health += 4
+            self.is_transformed = True  # Marquer l'unité comme transformée
+            # Jouer le son de transformation
+        if self.transformation_sound:
+            pygame.mixer.Sound(self.transformation_sound).play()
+            
+            
+    def check_health(self):
+        # Vérifier si l'unité doit se transformer
+        if self.health <= 0:
+            print(f"quolbutoqe unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+        elif self.health == 1 and not self.is_transformed:
+            self.transform()  # Transforme l'unité si elle atteint 1 PV
 
     def move(self, dx, dy, game):
         """

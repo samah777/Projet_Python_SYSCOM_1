@@ -7,6 +7,13 @@ from salameche import *
 from carapuce import *
 from vision import *
 from bulbizzare import *
+from magicarpe import *
+from quolbutoqe import *
+from chausouri import *
+from miaous import *
+
+
+
 # Définir la couleur des obstacles
 OBSTACLE_COLOR = (128, 128, 128)  # Gris
 
@@ -40,8 +47,11 @@ class Trap:
     def trigger_trap(self, unit):
         """Déclenche l'effet du piège lorsque l'unité tombe dessus."""
         print(f"{unit.team} unit at ({unit.x}, {unit.y}) stepped on a trap!")
-        unit.health -= 5  # Par exemple, une réduction de 5 points de vie
+        unit.health -= 4.5  # Par exemple, une réduction de 5 points de vie
         print(f"{unit.team} unit's health is now {unit.health}.")
+        
+        
+        unit.check_health()
         
         # Rendre le piège visible lorsqu'il est déclenché
         if (unit.x, unit.y) in self.positions:
@@ -108,30 +118,14 @@ class Game:
 
         self.background = pygame.image.load('assets/background.png')
         self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
-
-    
-        # self.player_icon_3 = pygame.image.load('assets/Bulbizarre.png')
-        
-
-        # self.enemy_icon_1 = pygame.image.load('assets/Magicarpe.png')
-        # self.enemy_icon_2 = pygame.image.load('assets/Qulbutoke.png')
-        # self.enemy_icon_3 = pygame.image.load('assets/Chovsourir.png')
-        # self.enemy_icon_4 = pygame.image.load('assets/Seviper.png')
-        
-        # self.player_icon_3 = pygame.transform.scale(self.player_icon_3, (CELL_SIZE, CELL_SIZE))
-
-        # self.enemy_icon_1 = pygame.transform.scale(self.enemy_icon_1, (CELL_SIZE, CELL_SIZE))
-        # self.enemy_icon_2 = pygame.transform.scale(self.enemy_icon_2, (CELL_SIZE, CELL_SIZE))
-        # self.enemy_icon_3 = pygame.transform.scale(self.enemy_icon_3, (CELL_SIZE, CELL_SIZE))
-        # self.enemy_icon_4 = pygame.transform.scale(self.enemy_icon_4, (CELL_SIZE, CELL_SIZE))
-
-        
+   
+           
         # Créer les unités (avant de générer les positions valides)
         self.player_units = [
             Pikachu(0, 0),
             Salameche(1,0),Carapuce(2,0),Bulbizarre(3, 0)]
 
-        self.enemy_units = []
+        self.enemy_units = [Magicarpe(6,6),Qulbutoke(7,6),Chovsouris(8,6),Miaouss(9,6)]
         
         # Générer les positions valides (unités et obstacles exclus)
         self.obstacles = Obstacle('assets/obstacle.png')
@@ -140,9 +134,7 @@ class Game:
         
         self.obstacles.generate_obstacles(GRID_SIZE, num_obstacles=30, unit_positions=self.get_unit_positions())
         
-        
-
-        
+           
         # Créer un piège aléatoire
         self.trap = Trap('assets/trap.png', 'assets/trap_sound.mp3')
         self.trap.generate_traps(GRID_SIZE, num_traps=5, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
@@ -173,26 +165,31 @@ class Game:
                 return True
         return False
     
-    def is_unit_visible(self, unit):
+    def is_unit_visible(self, unit, vision_sources):
         """
-        Vérifie si une unité est visible pour une unité active (sélectionnée).
+        Vérifie si une unité est visible depuis une liste de sources de vision.
     
         Paramètres
         ----------
         unit : Unit
             L'unité à vérifier.
+        vision_sources : list[Unit]
+            Liste des unités dont le champ de vision est considéré.
     
         Retourne
         --------
         bool
             True si l'unité est visible, False sinon.
         """
-        for player_unit in self.player_units:
-            if player_unit.is_selected:  # Unité en cours d'action
-                return (unit.x, unit.y) in player_unit.vision.get_visible_positions()
+        for source in vision_sources:
+            if (unit.x, unit.y) in source.vision.get_visible_positions():
+                return True
         return False
 
+
     def handle_player_turn(self):
+        
+        current_turn='player'
         """Tour du joueur"""
         for selected_unit in self.player_units[:]:  # Utilisation d'une copie de la liste pour éviter les problèmes lors de la suppression d'unités
             # Vérifier si l'unité est en vie avant de lui permettre de jouer
@@ -203,7 +200,7 @@ class Game:
     
             selected_unit.is_selected = True  # Sélectionner l'unité
             has_acted = False  # Flag pour vérifier si l'unité a agi
-            self.flip_display()  # Afficher l'écran avant que l'unité n'agisse
+            self.flip_display(current_turn)  # Afficher l'écran avant que l'unité n'agisse
     
             while not has_acted:  # Tant que l'unité n'a pas terminé son tour
                 for event in pygame.event.get():
@@ -233,10 +230,10 @@ class Game:
                                     continue  # Passer à l'unité suivante
     
                         # Afficher les changements
-                        self.flip_display()
+                        self.flip_display(current_turn)
     
                         # Si l'unité a appuyé sur la barre d'espace, elle attaque l'ennemi
-                        if event.key == pygame.K_SPACE:
+                        if (event.key == pygame.K_SPACE) or(selected_unit.health <= 0) :
                             for enemy in self.enemy_units:
                                 if abs(selected_unit.x - enemy.x) <= 1 and abs(selected_unit.y - enemy.y) <= 1:
                                     selected_unit.attack(enemy)
@@ -250,32 +247,132 @@ class Game:
 
 
     
+    # def handle_enemy_turn(self):
+    #     """IA très simple pour les ennemis."""
+    #     for enemy in self.enemy_units[:]:  # Itérer sur une copie de la liste pour gérer les suppressions
+    #         if enemy.health <= 0:  # Vérification immédiate de la mort de l'ennemi
+    #             self.enemy_units.remove(enemy)  # Retirer l'ennemi mort de la liste
+    #             continue  # Passer à l'ennemi suivant
+    
+    #         target = random.choice(self.player_units)
+    #         dx = 1 if enemy.x < target.x else -1 if enemy.x > target.x else 0
+    #         dy = 1 if enemy.y < target.y else -1 if enemy.y > target.y else 0
+    #         enemy.move(dx, dy, self)
+    
+    #         # Vérification si l'ennemi est tombé sur un piège
+    #         if self.trap.check_for_trap(enemy.x, enemy.y):
+    #             self.trap.trigger_trap(enemy)
+    
+    #         if abs(enemy.x - target.x) <= 1 and abs(enemy.y - target.y) <= 1:
+    #             enemy.attack(target)
+    #             if target.health <= 0:
+    #                 self.player_units.remove(target)
+
+
     def handle_enemy_turn(self):
-        """IA très simple pour les ennemis."""
-        for enemy in self.enemy_units[:]:  # Itérer sur une copie de la liste pour gérer les suppressions
-            if enemy.health <= 0:  # Vérification immédiate de la mort de l'ennemi
-                self.enemy_units.remove(enemy)  # Retirer l'ennemi mort de la liste
-                continue  # Passer à l'ennemi suivant
+        
+        current_turn='enemy'
+        
+        """Tour de l'adversaire (contrôlé par un autre joueur)."""
+        for selected_unit in self.enemy_units[:]:  # Utilisation d'une copie de la liste pour éviter les problèmes lors de la suppression d'unités
+            # Vérifier si l'unité est en vie avant de lui permettre de jouer
+            if selected_unit.health <= 0:  # Si l'unité est morte
+                print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
+                self.enemy_units.remove(selected_unit)  # Retirer l'unité morte de la liste
+                continue  # Passer à l'unité suivante
     
-            target = random.choice(self.player_units)
-            dx = 1 if enemy.x < target.x else -1 if enemy.x > target.x else 0
-            dy = 1 if enemy.y < target.y else -1 if enemy.y > target.y else 0
-            enemy.move(dx, dy, self)
+            selected_unit.is_selected = True  # Sélectionner l'unité
+            has_acted = False  # Flag pour vérifier si l'unité a agi
+            self.flip_display(current_turn)  # Afficher l'écran avant que l'unité n'agisse
     
-            # Vérification si l'ennemi est tombé sur un piège
-            if self.trap.check_for_trap(enemy.x, enemy.y):
-                self.trap.trigger_trap(enemy)
+            while not has_acted:  # Tant que l'unité n'a pas terminé son tour
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        exit()
     
-            if abs(enemy.x - target.x) <= 1 and abs(enemy.y - target.y) <= 1:
-                enemy.attack(target)
-                if target.health <= 0:
-                    self.player_units.remove(target)
+                    if event.type == pygame.KEYDOWN:
+                        dx, dy = 0, 0
+                        if event.key == pygame.K_LEFT:  # Déplacement à gauche
+                            dx = -1
+                        elif event.key == pygame.K_RIGHT:  # Déplacement à droite
+                            dx = 1
+                        elif event.key == pygame.K_UP:  # Déplacement vers le haut
+                            dy = -1
+                        elif event.key == pygame.K_DOWN:  # Déplacement vers le bas
+                            dy = 1
+    
+                        # Vérifier si l'unité est en vie avant de lui permettre de se déplacer
+                        if selected_unit.health > 0:
+                            selected_unit.move(dx, dy, self)  # Déplacer l'unité
+                            # Vérifier si l'unité est tombée sur un piège
+                            if self.trap.check_for_trap(selected_unit.x, selected_unit.y):
+                                self.trap.trigger_trap(selected_unit)  # Déclencher le piège et réduire les points de vie
+                                if selected_unit.health <= 0:  # Si l'unité meurt après le piège
+                                    self.enemy_units.remove(selected_unit)
+                                    continue  # Passer à l'unité suivante
+    
+                        # Afficher les changements
+                        self.flip_display(current_turn)
+    
+                        # Si l'unité a appuyé sur la barre d'espace, elle attaque l'adversaire
+                        if event.key == pygame.K_SPACE:
+                            for player_unit in self.player_units:
+                                if abs(selected_unit.x - player_unit.x) <= 1 and abs(selected_unit.y - player_unit.y) <= 1:
+                                    selected_unit.attack(player_unit)
+                                    if player_unit.health <= 0:
+                                        self.player_units.remove(player_unit)
+    
+                            # L'unité a agi, on termine son tour
+                            has_acted = True
+                            selected_unit.is_selected = False  # L'unité n'est plus sélectionnée
 
 
 
-
-    def flip_display(self):
-        """Affiche le jeu."""
+    # 1 seul joueur avec l'ia
+    # def flip_display(self):
+    #     """Affiche le jeu."""
+    #     self.screen.fill(BLACK)
+    
+    #     # Dessiner l'image de fond
+    #     self.screen.blit(self.background, (0, 0))
+    
+    #     # Dessiner la grille
+    #     for x in range(0, WIDTH, CELL_SIZE):
+    #         for y in range(0, HEIGHT, CELL_SIZE):
+    #             rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+    #             pygame.draw.rect(self.screen, WHITE, rect, 1)
+    
+    #     # Dessiner le champ de vision des unités sélectionnées
+    #     for unit in self.player_units + self.enemy_units:
+    #         if unit.is_selected:
+    #             unit.vision.draw(self.screen)
+    
+    #     # Dessiner les obstacles
+    #     self.obstacles.draw(self.screen)
+    
+    #     # Dessiner les pièges visibles
+    #     self.trap.draw(self.screen)
+    
+    #     # Dessiner uniquement les unités visibles
+    #     for unit in self.player_units + self.enemy_units:
+    #         if unit.team == "player" or (
+    #             unit.team == "enemy" and self.is_unit_visible(unit)
+    #         ):
+    #             unit.draw(self.screen)
+    
+    #     pygame.display.flip()
+    
+    #2 joueurs
+    def flip_display(self, current_turn):
+        """
+        Affiche le jeu, ne montrant les unités adverses que si elles sont dans le champ de vision.
+    
+        Paramètres
+        ----------
+        current_turn : str
+            Identifie à qui appartient le tour actuel ('player' ou 'enemy').
+        """
         self.screen.fill(BLACK)
     
         # Dessiner l'image de fond
@@ -298,12 +395,20 @@ class Game:
         # Dessiner les pièges visibles
         self.trap.draw(self.screen)
     
-        # Dessiner uniquement les unités visibles
-        for unit in self.player_units + self.enemy_units:
-            if unit.team == "player" or (
-                unit.team == "enemy" and self.is_unit_visible(unit)
-            ):
-                unit.draw(self.screen)
+        # Dessiner les unités visibles en fonction du tour
+        if current_turn == "player":
+            for unit in self.player_units:
+                unit.draw(self.screen)  # Dessiner toutes les unités des joueurs
+            for enemy in self.enemy_units:
+                if self.is_unit_visible(enemy, self.player_units):  # Vérifie si visible par un joueur
+                    enemy.draw(self.screen)
+    
+        elif current_turn == "enemy":
+            for enemy in self.enemy_units:
+                enemy.draw(self.screen)  # Dessiner toutes les unités ennemies
+            for unit in self.player_units:
+                if self.is_unit_visible(unit, self.enemy_units):  # Vérifie si visible par un ennemi
+                    unit.draw(self.screen)
     
         pygame.display.flip()
 
@@ -314,6 +419,7 @@ def main():
 
     # Initialisation de Pygame
     pygame.init()
+    
 
     # Instanciation de la fenêtre
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -330,7 +436,10 @@ def main():
     while True:
         game.handle_player_turn()
         game.handle_enemy_turn()
+    
+    
 
+    
 
 if __name__ == "__main__":
     main()

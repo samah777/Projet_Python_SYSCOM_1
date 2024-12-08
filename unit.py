@@ -35,7 +35,7 @@ class Unit:
         Dessine l'unité sur la grille.
     """
 
-    def __init__(self, x, y, health, health_max, attack_power,velocity, team, icon=None):
+    def __init__(self, x, y, health, health_max, attack_power,velocity, team, icon,transformed_icon=None,transformation_sound=None):
         """
         Construit une unité avec une position, une santé, une puissance d'attaque et une équipe.
 
@@ -63,6 +63,29 @@ class Unit:
         self.vision = Vision(self, GRID_SIZE)  # Champ de vision associé
         self.velocity = velocity
         self.vision = Vision(self, GRID_SIZE)  # Champ de vision associé
+        self.transformed_icon = transformed_icon  if transformed_icon else None  # Icône pour l'unité transformée
+        self.transformation_sound = transformation_sound  # Fichier son pour la transformation
+        self.is_transformed = False  # Indique si l'unité est transformée*
+        
+    def transform(self):
+        """Transforme l'unité en une version plus puissante."""
+        if self.transformed_icon and not self.is_transformed:
+            print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.icon = self.transformed_icon  # Changer l'icône
+            # self.attack += 2  # Exemple : augmenter la puissance d'attaque
+            # self.health += 4
+            self.is_transformed = True  # Marquer l'unité comme transformée
+            # Jouer le son de transformation
+        if self.transformation_sound:
+            pygame.mixer.Sound(self.transformation_sound).play()
+            
+            
+    def check_health(self):
+        # Vérifier si l'unité doit se transformer
+        if self.health <= 0:
+            print(f"{unit.team} unit at ({unit.x}, {unit.y}) died!")  # L'unité est morte
+        elif self.health == 1 and not self.is_transformed:
+            self.transform()  # Transforme l'unité si elle atteint 1 PV
 
 
     def move(self, dx, dy, game):
