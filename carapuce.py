@@ -2,41 +2,41 @@ import pygame
 from constante import *
 from unit import Unit
 
-class Salameche(Unit):
+class Carapuce(Unit):
     """
-    Classe représentant Salamèche, héritant de Unit.
+    Classe représentant Carapuce, héritant de Unit.
     """
 
     def __init__(self, x, y):
         """
-        Initialise Salamèche avec des caractéristiques spécifiques.
+        Initialise Carapuce avec des caractéristiques spécifiques.
 
         Paramètres
         ----------
         x : int
-            Position x de Salamèche sur la grille.
+            Position x de Carapuce sur la grille.
         y : int
-            Position y de Salamèche sur la grille.
+            Position y de Carapuce sur la grille.
         """
-        # Caractéristiques spécifiques à Salamèche
+        # Caractéristiques spécifiques à Carapuce
         health = 10  
-        health_max = 100  # Santé maximale différente
-        attack_power = 30  # Salamèche a une attaque plus forte
-        velocity = 3  # Salamèche est plus rapide
+        health_max = 100
+        attack_power = 10
+        velocity = 2  # Vitesse standard
         team = 'player'
-        self.attack_range = 2  # Portée légèrement inférieure
+        self.attack_range = 2  # Portée légèrement réduite
 
         # Charger l'image dans self.icon
-        icon_path = 'assets/salameche.png'
+        icon_path = 'assets/carapuce.png'
         self.icon = pygame.image.load(icon_path)  # Charger l'image depuis le chemin
         self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionner
 
-        # Appeler le constructeur parent avec une icône spécifique à Salamèche
+        # Appeler le constructeur parent avec une icône spécifique à Carapuce
         super().__init__(x, y, health, health_max, attack_power, velocity, team, self.icon)
 
     def move(self, dx, dy, game):
         """
-        Déplace Salamèche de dx, dy si la position cible est valide (pas d'obstacle).
+        Déplace Carapuce de dx, dy si la position cible est valide (pas d'obstacle).
 
         Paramètres
         ----------
@@ -79,7 +79,7 @@ class Salameche(Unit):
 
     def show_attack_range(self, screen):
         """
-        Affiche la portée de l'attaque de Salamèche avec des cases rouges.
+        Affiche la portée de l'attaque de Carapuce avec des cases bleues claires.
 
         Paramètres
         ----------
@@ -93,21 +93,21 @@ class Salameche(Unit):
                     target_y = self.y + dy
                     if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
                         pygame.draw.rect(
-                            screen, (255, 0, 0),  # Rouge pour Salamèche
+                            screen, (0, 0, 255),  # Bleu clair pour Carapuce
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                             10  # Épaisseur de la bordure
                         )
 
     def draw(self, screen):
         """
-        Dessine Salamèche et affiche sa portée si sélectionné.
+        Dessine Carapuce et affiche sa portée si sélectionné.
 
         Paramètres
         ----------
         screen : pygame.Surface
             L'écran sur lequel dessiner.
         """
-        # Si Salamèche est sélectionné, montrer sa portée d'attaque
+        # Si Carapuce est sélectionné, montrer sa portée d'attaque
         if self.is_selected:
             self.show_attack_range(screen)
 
