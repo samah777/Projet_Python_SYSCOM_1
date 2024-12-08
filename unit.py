@@ -1,6 +1,7 @@
 import pygame
 import random
 from constante import *
+from vision import *
 
 
 
@@ -59,6 +60,7 @@ class Unit:
         self.is_selected = False
         self.icon = icon #ico
         self.health_max = health_max
+        self.vision = Vision(self, GRID_SIZE)  # Champ de vision associé
         self.velocity = velocity
 
     def move(self, dx, dy, game):

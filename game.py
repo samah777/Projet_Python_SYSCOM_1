@@ -5,7 +5,7 @@ from constante import *
 from pikachu import *
 from salameche import *
 from carapuce import *
-
+from vision import *
 # Définir la couleur des obstacles
 OBSTACLE_COLOR = (128, 128, 128)  # Gris
 
@@ -172,12 +172,24 @@ class Game:
                 return True
         return False
     
-    def is_unit_occupied(self, x, y):
-        """Vérifie si une unité existe déjà à cette position."""
-        for unit in self.player_units + self.enemy_units:
-            if unit.x == x and unit.y == y:
-                return True
-        return False    
+    def is_unit_visible(self, unit):
+        """
+        Vérifie si une unité est visible pour une unité active (sélectionnée).
+    
+        Paramètres
+        ----------
+        unit : Unit
+            L'unité à vérifier.
+    
+        Retourne
+        --------
+        bool
+            True si l'unité est visible, False sinon.
+        """
+        for player_unit in self.player_units:
+            if player_unit.is_selected:  # Unité en cours d'action
+                return (unit.x, unit.y) in player_unit.vision.get_visible_positions()
+        return False
 
     def handle_player_turn(self):
         """Tour du joueur"""
@@ -264,28 +276,35 @@ class Game:
     def flip_display(self):
         """Affiche le jeu."""
         self.screen.fill(BLACK)
-        
+    
         # Dessiner l'image de fond
         self.screen.blit(self.background, (0, 0))
-        
+    
         # Dessiner la grille
         for x in range(0, WIDTH, CELL_SIZE):
             for y in range(0, HEIGHT, CELL_SIZE):
                 rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
                 pygame.draw.rect(self.screen, WHITE, rect, 1)
-        
+    
+        # Dessiner le champ de vision des unités sélectionnées
+        for unit in self.player_units + self.enemy_units:
+            if unit.is_selected:
+                unit.vision.draw(self.screen)
+    
         # Dessiner les obstacles
         self.obstacles.draw(self.screen)
-        
+    
         # Dessiner les pièges visibles
         self.trap.draw(self.screen)
-        
-        # Dessiner les unités
+    
+        # Dessiner uniquement les unités visibles
         for unit in self.player_units + self.enemy_units:
-            unit.draw(self.screen)
-        
+            if unit.team == "player" or (
+                unit.team == "enemy" and self.is_unit_visible(unit)
+            ):
+                unit.draw(self.screen)
+    
         pygame.display.flip()
-
 
 
         
