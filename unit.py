@@ -62,6 +62,8 @@ class Unit:
         self.health_max = health_max
         self.vision = Vision(self, GRID_SIZE)  # Champ de vision associé
         self.velocity = velocity
+        self.vision = Vision(self, GRID_SIZE)  # Champ de vision associé
+
 
     def move(self, dx, dy, game):
         new_x = self.x + dx

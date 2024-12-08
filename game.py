@@ -6,6 +6,7 @@ from pikachu import *
 from salameche import *
 from carapuce import *
 from vision import *
+from bulbizzare import *
 # Définir la couleur des obstacles
 OBSTACLE_COLOR = (128, 128, 128)  # Gris
 
@@ -128,7 +129,7 @@ class Game:
         # Créer les unités (avant de générer les positions valides)
         self.player_units = [
             Pikachu(0, 0),
-            Salameche(1,0),Carapuce(2,0)]
+            Salameche(1,0),Carapuce(2,0),Bulbizarre(3, 0)]
 
         self.enemy_units = []
         
@@ -305,6 +306,7 @@ class Game:
                 unit.draw(self.screen)
     
         pygame.display.flip()
+
 
 
         
