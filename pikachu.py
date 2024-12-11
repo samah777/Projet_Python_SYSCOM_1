@@ -1,8 +1,10 @@
+
+
 import pygame
 from constante import *
 from unit import *
 from vision import *
-
+from Skill import *
 
 class Pikachu(Unit):
     """
@@ -22,25 +24,68 @@ class Pikachu(Unit):
         """
         # Caractéristiques spécifiques à Pikachu
         health = 10
-        health_max = 100
-        attack_power = 25
+        self.cooldown=2
+        health_max = 10
+        self.attack_power = 3
         velocity = 2
         team = 'player'
         self.attack_range = 3  # Portée de l'attaque en nombre de cases
+        self.invulnerable_turns=0
 
         # Charger l'image dans self.icon
         icon_path = 'assets/pokemon.png'
         self.icon = pygame.image.load(icon_path)  # Charger l'image depuis le chemin
         self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionner
         
+
         self.transformed_icon = pygame.image.load('assets/Raichu.png')
         self.transformed_icon = pygame.transform.scale(self.transformed_icon, (CELL_SIZE, CELL_SIZE))
-        
-        
+
         self.transformation_sound = pygame.mixer.Sound('assets/evolution/pokemon.mp3')
+        
+
 
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity, team, self.icon, self.transformed_icon, self.transformation_sound)
+        
+        thunderbolt = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
+        self.add_skills([thunderbolt])
+        # Supposons qu'on ait déjà ajouté une compétence offensive
+        # On ajoute maintenant une compétence défensive
+        defense_skill =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        self.add_skills([defense_skill])
+
+        
+        # Initialiser les cooldowns à 0 pour chaque compétence
+        
+
+        # Ajouter les compétences spécifiques à Pikachu
+        
+
+    def use_eclair(self, game, cursor_x, cursor_y):
+        """
+        Exécute la compétence "Éclair" sur une cible.
+
+        Paramètres
+        ----------
+        game : Game
+            Instance du jeu.
+        cursor_x : int
+            Position x de la case ciblée.
+        cursor_y : int
+            Position y de la case ciblée.
+        """
+        # Vérifier si la cible est valide
+        target = next((enemy for enemy in game.enemy_units if enemy.x == cursor_x and enemy.y == cursor_y), None)
+        if target:
+            # Infliger des dégâts
+            target.health -= 2
+            print(f"{self.skills[0].name} utilisé sur ({target.x}, {target.y}) ! Santé restante : {target.health}")
+            if target.health <= 0:
+                game.enemy_units.remove(target)  # Retirer l'ennemi s'il est mort
+        else:
+            print(f"Aucune cible ennemie dans la case ({cursor_x}, {cursor_y}).")
+
 
 
     def transform(self):
@@ -126,9 +171,12 @@ class Pikachu(Unit):
                         pygame.draw.rect(
                             screen, (255, 255, 0),
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                            2  # Épaisseur de la bordure
+                            3  # Épaisseur de la bordure
                         )
 
+
+
+        
     def draw(self, screen):
         """
         Dessine Pikachu et affiche sa portée si sélectionné.

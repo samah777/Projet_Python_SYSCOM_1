@@ -66,6 +66,15 @@ class Unit:
         self.transformed_icon = transformed_icon  if transformed_icon else None  # Icône pour l'unité transformée
         self.transformation_sound = transformation_sound  # Fichier son pour la transformation
         self.is_transformed = False  # Indique si l'unité est transformée*
+        self.skills=[]
+        self.current_cooldowns = {}
+        self.stunned_turns = 0  # Nombre de tours où l'unité est étourdie
+        self.invulnerable_turns = 0  # Nombre de tours où l'unité est invulnérable
+
+        
+        
+        
+        
         
     def transform(self):
         """Transforme l'unité en une version plus puissante."""
@@ -78,6 +87,26 @@ class Unit:
             # Jouer le son de transformation
         if self.transformation_sound:
             pygame.mixer.Sound(self.transformation_sound).play()
+    
+    
+    def reduce_cooldowns(self):
+        for skill_name in self.current_cooldowns:
+            if self.current_cooldowns[skill_name] > 0:
+                self.current_cooldowns[skill_name] -= 1
+    def add_skills(self, skills):
+        """
+        Ajoute des compétences à l'unité et initialise leurs cooldowns.
+        
+        Paramètres
+        ----------
+        skills : list[Skill]
+            Liste des compétences à ajouter.
+        """
+        for skill in skills:
+            self.skills.append(skill)
+            self.current_cooldowns[skill.name] = 0  # Initialiser le cooldown à 0
+
+
             
             
     def check_health(self):
@@ -102,6 +131,25 @@ class Unit:
         if abs(self.x - target.x) <= 1 and abs(self.y - target.y) <= 1:
             target.health -= self.attack_power
             
+    def apply_damage(self, target, damage):
+        if target.invulnerable_turns > 0:
+            print(f"{target.team} unit is invulnerable and takes no damage!")
+            return
+        
+        # Si pas invulnérable, on applique les dégâts
+        target.health -= damage
+        print(f"{self.team} unit attacked {target.team} unit at ({target.x}, {target.y}). Damage: {damage}. Remaining health: {target.health}")
+        
+        if target.health <= 0:
+            print(f"{target.team} unit at ({target.x}, {target.y}) is dead.")
+
+    
+
+    
+    
+
+        
+
             
     def check_death(self, game):
         """Vérifie si l'unité est morte et la retire de la liste des unités actives."""

@@ -2,7 +2,7 @@ import pygame
 from constante import *
 from unit import Unit
 from vision import *
-
+from Skill import *
 
 class Carapuce(Unit):
     """
@@ -21,17 +21,21 @@ class Carapuce(Unit):
             Position y de Carapuce sur la grille.
         """
         # Caractéristiques spécifiques à Carapuce
+        self.cooldown=4
         health = 10  
         health_max = 100
-        attack_power = 10
+        self.attack_power = 9
         velocity = 2  # Vitesse standard
         team = 'player'
         self.attack_range = 2  # Portée légèrement réduite
+        self.invulnerable_turns=0
+
 
         # Charger l'image dans self.icon
         icon_path = 'assets/carapuce.png'
         self.icon = pygame.image.load(icon_path)  # Charger l'image depuis le chemin
         self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionner
+        
 
         # Appeler le constructeur parent avec une icône spécifique à Carapuce
         self.transformed_icon = pygame.image.load('assets/tortank.png')
@@ -39,10 +43,19 @@ class Carapuce(Unit):
         
         
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
-
+        
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
-   
+        super().__init__(x, y, health, health_max, self.attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+        # Initialiser les cooldowns à 0 pour chaque compétence
+        thunderbolt = Skill(name="orage", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
+        self.add_skills([thunderbolt])
+        # Supposons qu'on ait déjà ajouté une compétence offensive
+# On ajoute maintenant une compétence défensive
+        defense_skill =Skill(name="heal", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="heal", effect_value=5)
+        self.add_skills([defense_skill])
+        
+        
+        
     def transform(self):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
@@ -124,7 +137,7 @@ class Carapuce(Unit):
                         pygame.draw.rect(
                             screen, (0, 0, 255),  # Bleu clair pour Carapuce
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                            10  # Épaisseur de la bordure
+                            3  # Épaisseur de la bordure
                         )
 
     def draw(self, screen):

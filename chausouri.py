@@ -2,6 +2,8 @@ import pygame
 from constante import *
 from unit import Unit
 from vision import *
+from Skill import *
+
 
 class Chovsouris(Unit):
     """
@@ -22,10 +24,12 @@ class Chovsouris(Unit):
         # Caractéristiques spécifiques à Chovsouris
         health = 10
         health_max = 100  # Santé modérée
-        attack_power = 2  # Attaque modérée
+        self.cooldown=0
+        self.attack_power = 4.5  # Attaque modérée
         velocity = 3  # Vitesse rapide
         team = 'enemy'  # Chovsouris est un ennemi
         self.attack_range = 2  # Portée légèrement augmentée
+        self.invulnerable_turns=0
 
         # Charger l'image dans self.icon
         icon_path = 'assets/Chovsourir.png'
@@ -39,8 +43,18 @@ class Chovsouris(Unit):
         
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
 
+            # Skill("Vague Hydro", range=2, damage=5)  # Compétence avec effet
+        
+
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+        # Initialiser les cooldowns à 0 pour chaque compétence
+        thunderbolt = Skill(name="menace",attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
+        self.add_skills([thunderbolt])
+        # Supposons qu'on ait déjà ajouté une compétence offensive
+# On ajoute maintenant une compétence défensive
+        defense_skill =Skill(name="stun", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="stun", effect_value=5)
+        self.add_skills([defense_skill])
 
     def transform(self):
         """Transforme l'unité en une version plus puissante."""
@@ -125,7 +139,7 @@ class Chovsouris(Unit):
                         pygame.draw.rect(
                             screen, light_yellow,  # Jaune clair pour Chovsouris
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                            10  # Épaisseur de la bordure
+                            3  # Épaisseur de la bordure
                         )
 
     def draw(self, screen):

@@ -1,6 +1,9 @@
 import pygame
 from constante import *
 from unit import Unit
+from vision import *
+
+from Skill import *
 
 class Bulbizarre(Unit):
     """
@@ -19,12 +22,14 @@ class Bulbizarre(Unit):
             Position y de Bulbizarre sur la grille.
         """
         # Caractéristiques spécifiques à Bulbizarre
-        health = 10 
-        health_max = 100
-        attack_power = 10
-        velocity = 2  # Vitesse standard
+        health = 10
+        self.cooldown=2
+        health_max = 10
+        self.attack_power = 3
+        velocity = 2
         team = 'player'
-        self.attack_range = 2  # Portée légèrement réduite
+        self.attack_range = 3  # Portée de l'attaque en nombre de cases
+        self.invulnerable_turns=0
 
         # Charger l'image dans self.icon
         icon_path = 'assets/Bulbizarre.png'
@@ -38,8 +43,18 @@ class Bulbizarre(Unit):
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
 
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity, team, self.icon, self.transformed_icon, self.transformation_sound)
+        
+        attack_offensive = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
+        self.add_skills([attack_offensive])
+        # Supposons qu'on ait déjà ajouté une compétence offensive
+        # On ajoute maintenant une compétence défensive
+        attack_defensive =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        self.add_skills([attack_defensive])
 
+        
+        
+        
     def transform(self):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
@@ -122,7 +137,7 @@ class Bulbizarre(Unit):
                         pygame.draw.rect(
                             screen, (0, 255,0 ),  # Vert clair pour Bulbizarre
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                            10  # Épaisseur de la bordure
+                            3  # Épaisseur de la bordure
                         )
 
     def draw(self, screen):
