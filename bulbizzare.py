@@ -1,49 +1,49 @@
 import pygame
 from constante import *
 from unit import Unit
-from vision import *
 
-class Salameche(Unit):
+class Bulbizarre(Unit):
     """
-    Classe représentant Salamèche, héritant de Unit.
+    Classe représentant Bulbizarre, héritant de Unit.
     """
 
     def __init__(self, x, y):
         """
-        Initialise Salamèche avec des caractéristiques spécifiques.
+        Initialise Bulbizarre avec des caractéristiques spécifiques.
 
         Paramètres
         ----------
         x : int
-            Position x de Salamèche sur la grille.
+            Position x de Bulbizarre sur la grille.
         y : int
-            Position y de Salamèche sur la grille.
+            Position y de Bulbizarre sur la grille.
         """
-        # Caractéristiques spécifiques à Salamèche
-        health = 10  
-        health_max = 100  # Santé maximale différente
-        attack_power = 30  # Salamèche a une attaque plus forte
-        velocity = 3  # Salamèche est plus rapide
+        # Caractéristiques spécifiques à Bulbizarre
+        health = 10 
+        health_max = 100
+        attack_power = 10
+        velocity = 2  # Vitesse standard
         team = 'player'
-        self.attack_range = 2  # Portée légèrement inférieure
+        self.attack_range = 2  # Portée légèrement réduite
 
         # Charger l'image dans self.icon
-        icon_path = 'assets/salameche.png'
+        icon_path = 'assets/Bulbizarre.png'
         self.icon = pygame.image.load(icon_path)  # Charger l'image depuis le chemin
         self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionner
-        self.transformed_icon = pygame.image.load('assets/Dracaufeu.png')
+
+        self.transformed_icon = pygame.image.load('assets/Florizar.png')
         self.transformed_icon = pygame.transform.scale(self.transformed_icon, (CELL_SIZE, CELL_SIZE))
         
         
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
-        # Appeler le constructeur parent avec une icône spécifique à Salamèche
-        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
 
+        # Appeler le constructeur parent avec une icône spécifique à Pikachu
+        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
 
     def transform(self):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
-            print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            print(f"blublizzare unit at ({self.x}, {self.y}) transforms!")
             self.icon = self.transformed_icon  # Changer l'icône
             # self.attack += 2  # Exemple : augmenter la puissance d'attaque
             # self.health += 4
@@ -56,13 +56,14 @@ class Salameche(Unit):
     def check_health(self):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
-            print(f"salameche unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+            print(f"blublizzare unit at ({self.x}, {self.y}) died!")  # L'unité est morte
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
 
+
     def move(self, dx, dy, game):
         """
-        Déplace Salamèche de dx, dy si la position cible est valide (pas d'obstacle).
+        Déplace Bulbizarre de dx, dy si la position cible est valide (pas d'obstacle).
 
         Paramètres
         ----------
@@ -100,12 +101,12 @@ class Salameche(Unit):
         for enemy in enemies:
             distance = abs(self.x - enemy.x) + abs(self.y - enemy.y)  # Distance de Manhattan
             if distance <= effective_range:
-                enemy.health -= effective_power
+                enemy.health = max(0, enemy.health - effective_power)
                 print(f"Enemy at ({enemy.x}, {enemy.y}) hit! Remaining health: {enemy.health}")
 
     def show_attack_range(self, screen):
         """
-        Affiche la portée de l'attaque de Salamèche avec des cases rouges.
+        Affiche la portée de l'attaque de Bulbizarre avec des cases bleues claires.
 
         Paramètres
         ----------
@@ -119,21 +120,21 @@ class Salameche(Unit):
                     target_y = self.y + dy
                     if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
                         pygame.draw.rect(
-                            screen, (255, 0, 0),  # Rouge pour Salamèche
+                            screen, (0, 255,0 ),  # Vert clair pour Bulbizarre
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                             10  # Épaisseur de la bordure
                         )
 
     def draw(self, screen):
         """
-        Dessine Salamèche et affiche sa portée si sélectionné.
+        Dessine Bulbizarre et affiche sa portée si sélectionné.
 
         Paramètres
         ----------
         screen : pygame.Surface
             L'écran sur lequel dessiner.
         """
-        # Si Salamèche est sélectionné, montrer sa portée d'attaque
+        # Si Bulbizarre est sélectionné, montrer sa portée d'attaque
         if self.is_selected:
             self.show_attack_range(screen)
 

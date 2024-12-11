@@ -1,6 +1,8 @@
 import pygame
 from constante import *
-from unit import Unit
+from unit import *
+from vision import *
+
 
 class Pikachu(Unit):
     """
@@ -30,9 +32,36 @@ class Pikachu(Unit):
         icon_path = 'assets/pokemon.png'
         self.icon = pygame.image.load(icon_path)  # Charger l'image depuis le chemin
         self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionner
+        
+        self.transformed_icon = pygame.image.load('assets/Raichu.png')
+        self.transformed_icon = pygame.transform.scale(self.transformed_icon, (CELL_SIZE, CELL_SIZE))
+        
+        
+        self.transformation_sound = pygame.mixer.Sound('assets/evolution/pokemon.mp3')
 
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, attack_power, velocity, team, self.icon)
+        super().__init__(x, y, health, health_max, attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+
+
+    def transform(self):
+        """Transforme l'unité en une version plus puissante."""
+        if self.transformed_icon and not self.is_transformed:
+            print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.icon = self.transformed_icon  # Changer l'icône
+            # self.attack += 2  # Exemple : augmenter la puissance d'attaque
+            # self.health += 4
+            self.is_transformed = True  # Marquer l'unité comme transformée
+            # Jouer le son de transformation
+        if self.transformation_sound:
+            pygame.mixer.Sound(self.transformation_sound).play()
+            
+            
+    def check_health(self):
+        # Vérifier si l'unité doit se transformer
+        if self.health <= 0:
+            print(f"Pikatchu unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+        elif self.health == 1 and not self.is_transformed:
+            self.transform()  # Transforme l'unité si elle atteint 1 PV
 
     def move(self, dx, dy, game):
         """
@@ -95,7 +124,7 @@ class Pikachu(Unit):
                     target_y = self.y + dy
                     if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
                         pygame.draw.rect(
-                            screen, BLUE,
+                            screen, (255, 255, 0),
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                             2  # Épaisseur de la bordure
                         )

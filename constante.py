@@ -9,4 +9,12 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+HEAD
 GREEN = (0, 255, 0)
+
+GREEN = (0, 255, 0)
+x=13
+GREEN = (0, 255, 0)
+Trap_damage=5
+
+restored-branch
