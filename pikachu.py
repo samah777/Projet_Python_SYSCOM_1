@@ -2,13 +2,17 @@ import pygame
 from constante import *
 from unit import *
 from vision import *
-
+from salameche import *
+from carapuce import *
+from vision import *
+from bulbizzare import *
+from magicarpe import *
+from quolbutoqe import *
+from chausouri import *
+from miaous import *
 
 class Pikachu(Unit):
-    """
-    Classe représentant Pikachu, héritant de Unit.
-    """
-
+    
     def __init__(self, x, y):
         """
         Initialise Pikachu avec des caractéristiques spécifiques.
@@ -25,7 +29,9 @@ class Pikachu(Unit):
         health_max = 100
         attack_power = 25
         velocity = 2
+        self.is_transformed = False
         team = 'player'
+        self.defense_duration = 0
         self.attack_range = 3  # Portée de l'attaque en nombre de cases
 
         # Charger l'image dans self.icon
@@ -35,7 +41,6 @@ class Pikachu(Unit):
         
         self.transformed_icon = pygame.image.load('assets/Raichu.png')
         self.transformed_icon = pygame.transform.scale(self.transformed_icon, (CELL_SIZE, CELL_SIZE))
-        
         
         self.transformation_sound = pygame.mixer.Sound('assets/evolution/pokemon.mp3')
 
@@ -78,12 +83,47 @@ class Pikachu(Unit):
         """
         new_x = self.x + dx
         new_y = self.y + dy
-
-
-        if (0 <= new_x < GRID_SIZE and 0 <= new_y < GRID_SIZE):
+        if (new_x, new_y) in self.get_attack_range():
+        # Vérifie les obstacles
             if not game.obstacles.is_obstacle(new_x, new_y):
                 self.x = new_x
                 self.y = new_y
+
+        #if (0 <= new_x < GRID_SIZE and 0 <= new_y < GRID_SIZE):
+            #if not game.obstacles.is_obstacle(new_x, new_y):
+                #self.x = new_x
+                #self.y = new_y
+        
+    def get_attack_range(self, base_x=None, base_y=None):
+        """
+        Calcule les coordonnées des cases dans la portée d'attaque de Pikachu.
+
+        Paramètres
+        ----------
+        base_x : int, facultatif
+            Position x de référence (par défaut self.x).
+        base_y : int, facultatif
+            Position y de référence (par défaut self.y).
+
+        Retourne
+        -------
+        list[tuple[int, int]]
+            Liste des coordonnées (x, y) dans la portée.
+        """
+        base_x = base_x if base_x is not None else self.x
+        base_y = base_y if base_y is not None else self.y
+        attack_range_coords = []
+
+        for dx in range(-self.attack_range, self.attack_range + 1):
+            for dy in range(-self.attack_range, self.attack_range + 1):
+                if abs(dx) + abs(dy) <= self.attack_range:  # Vérifie que la case est dans la portée
+                    target_x = base_x + dx
+                    target_y = base_y + dy
+                    if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
+                        attack_range_coords.append((target_x, target_y))
+
+        return attack_range_coords
+
          
 
     def area_attack(self, enemies, attack_range=None, attack_power=None):
@@ -128,6 +168,23 @@ class Pikachu(Unit):
                             (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                             2  # Épaisseur de la bordure
                         )
+                        
+
+    def special_defense(self):
+        """Active la compétence de défense spéciale."""
+        self.is_defending = True
+        self.defense_duration = 1
+        print(f"{self.team}'s Pikachu activated Special Defense!")
+
+    def deactivate_defense(self):
+        """Met fin à la défense si la durée est écoulée."""
+        self.defense_duration -= 1
+        if self.defense_duration <= 0:
+            self.is_defending = False
+            print(f"{self.team}'s Pikachu is no longer defending!")
+        else:
+            print(f"{self.team}'s Pikachu will defend for {self.defense_duration} more turn(s).")
+
 
     def draw(self, screen):
         """

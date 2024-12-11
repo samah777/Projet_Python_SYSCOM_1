@@ -12,10 +12,9 @@ from quolbutoqe import *
 from chausouri import *
 from miaous import *
 
-
-
 # Définir la couleur des obstacles
 OBSTACLE_COLOR = (128, 128, 128)  # Gris
+
 
 class Trap:
     """
@@ -50,7 +49,6 @@ class Trap:
         unit.health -= 4.5  # Par exemple, une réduction de 5 points de vie
         print(f"{unit.team} unit's health is now {unit.health}.")
         
-        
         unit.check_health()
         
         # Rendre le piège visible lorsqu'il est déclenché
@@ -64,8 +62,6 @@ class Trap:
         for trap_position in self.visible_traps:
             # Dessiner chaque piège à sa position (en utilisant son icône)
             screen.blit(self.icon, (trap_position[0] * CELL_SIZE, trap_position[1] * CELL_SIZE))
-
-
 
 
 class Obstacle:
@@ -100,8 +96,6 @@ class Obstacle:
             screen.blit(self.obstacle_image, (x * CELL_SIZE, y * CELL_SIZE))  # Dessiner l'image de l'obstacle à la position correspondante
 
 
-
-
 class Game:
     """
     Classe pour représenter le jeu.
@@ -114,32 +108,22 @@ class Game:
         self.screen = screen
         
         # Initialiser les obstacles et les positions valides
-
-
         self.background = pygame.image.load('assets/background.png')
         self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
    
-           
         # Créer les unités (avant de générer les positions valides)
-        self.player_units = [
-            Pikachu(0, 0),
-            Salameche(1,0),Carapuce(2,0),Bulbizarre(3, 0)]
+        self.player_units = [Pikachu(5, 3), Salameche(6,3), Carapuce(7,3), Bulbizarre(8, 3)]
+        self.enemy_units = [Magicarpe(6,11), Qulbutoke(7,11), Chovsouris(8,11), Miaouss(9,11)]
 
-        self.enemy_units = [Magicarpe(6,6),Qulbutoke(7,6),Chovsouris(8,6),Miaouss(9,6)]
-        
         # Générer les positions valides (unités et obstacles exclus)
         self.obstacles = Obstacle('assets/obstacle.png')
-        
         self.valid_positions = self.generate_valid_positions()
-        
         self.obstacles.generate_obstacles(GRID_SIZE, num_obstacles=30, unit_positions=self.get_unit_positions())
         
            
         # Créer un piège aléatoire
         self.trap = Trap('assets/trap.png', 'assets/trap_sound.mp3')
-        self.trap.generate_traps(GRID_SIZE, num_traps=5, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
-        
-        
+        self.trap.generate_traps(GRID_SIZE, num_traps=4, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
         
         
     def get_unit_positions(self):
@@ -185,12 +169,13 @@ class Game:
             if (unit.x, unit.y) in source.vision.get_visible_positions():
                 return True
         return False
-
-
+    
+    
     def handle_player_turn(self):
         
         current_turn='player'
         """Tour du joueur"""
+        selected_pik = self.player_units[0]
         for selected_unit in self.player_units[:]:  # Utilisation d'une copie de la liste pour éviter les problèmes lors de la suppression d'unités
             # Vérifier si l'unité est en vie avant de lui permettre de jouer
             if selected_unit.health <= 0:  # Si l'unité est morte
@@ -218,7 +203,9 @@ class Game:
                             dy = -1
                         elif event.key == pygame.K_DOWN:
                             dy = 1
-    
+                        elif event.key == pygame.K_d:
+                            selected_pik.special_defense()  # Activer la défense avec la touche D
+        
                         # Vérifier si l'unité est en vie avant de lui permettre de se déplacer
                         if selected_unit.health > 0:
                             selected_unit.move(dx, dy, self)  # Déplacer l'unité
@@ -228,7 +215,7 @@ class Game:
                                 if selected_unit.health <= 0:  # Si l'unité meurt après le piège
                                     self.player_units.remove(selected_unit)
                                     continue  # Passer à l'unité suivante
-    
+                    
                         # Afficher les changements
                         self.flip_display(current_turn)
     
@@ -310,15 +297,22 @@ class Game:
                                 self.trap.trigger_trap(selected_unit)  # Déclencher le piège et réduire les points de vie
                                 if selected_unit.health <= 0:  # Si l'unité meurt après le piège
                                     self.enemy_units.remove(selected_unit)
-                                    continue  # Passer à l'unité suivante
-    
+                                    continue
+                        
                         # Afficher les changements
                         self.flip_display(current_turn)
-    
-                        # Si l'unité a appuyé sur la barre d'espace, elle attaque l'adversaire
+
                         if event.key == pygame.K_SPACE:
-                            for player_unit in self.player_units:
-                                if abs(selected_unit.x - player_unit.x) <= 1 and abs(selected_unit.y - player_unit.y) <= 1:
+                            player_pik =  self.player_units[0]
+                            if (abs(selected_unit.x - player_pik.x) <= 1 and abs(selected_unit.y - player_pik.y) <= 1) and (player_pik.is_defending):
+                                player_pik.deactivate_defense()
+                            elif (abs(selected_unit.x - player_pik.x) <= 1 and abs(selected_unit.y - player_pik.y) <= 1) and (not(player_pik.is_defending)):
+                                 selected_unit.attack(player_pik)
+                                 if player_pik.health <= 0:
+                                    self.player_units.remove(player_pik)
+
+                            for player_unit in self.player_units[1:]:
+                                if (abs(selected_unit.x - player_unit.x) <= 1 and abs(selected_unit.y - player_unit.y) <= 1):
                                     selected_unit.attack(player_unit)
                                     if player_unit.health <= 0:
                                         self.player_units.remove(player_unit)
@@ -364,6 +358,7 @@ class Game:
     #     pygame.display.flip()
     
     #2 joueurs
+
     def flip_display(self, current_turn):
         """
         Affiche le jeu, ne montrant les unités adverses que si elles sont dans le champ de vision.
@@ -394,7 +389,7 @@ class Game:
     
         # Dessiner les pièges visibles
         self.trap.draw(self.screen)
-    
+        
         # Dessiner les unités visibles en fonction du tour
         if current_turn == "player":
             for unit in self.player_units:
@@ -431,15 +426,11 @@ def main():
     print("Position des pièges générés :")
     for trap_position in game.trap.positions:
             print(trap_position)  # Affiche les positions des pièges générés
-
+    
     # Boucle principale du jeu
     while True:
         game.handle_player_turn()
         game.handle_enemy_turn()
-    
-    
-
-    
 
 if __name__ == "__main__":
     main()
