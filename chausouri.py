@@ -55,6 +55,9 @@ class Chovsouris(Unit):
 # On ajoute maintenant une compétence défensive
         defense_skill =Skill(name="stun", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="stun", effect_value=5)
         self.add_skills([defense_skill])
+        
+        attack_special =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        self.add_skills([attack_special])
 
     def transform(self):
         """Transforme l'unité en une version plus puissante."""

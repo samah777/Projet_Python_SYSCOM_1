@@ -54,6 +54,9 @@ class Pikachu(Unit):
         # On ajoute maintenant une compétence défensive
         defense_skill =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
         self.add_skills([defense_skill])
+        
+        attack_special =Skill(name="coups de tonner", attack_range=self.attack_range, damage=5, cooldown=5,effect="special", effect_value=1)
+        self.add_skills([attack_special])
 
         
         # Initialiser les cooldowns à 0 pour chaque compétence

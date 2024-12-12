@@ -13,6 +13,7 @@ from chausouri import *
 from miaous import *
 import os
 from Skillmenu import SkillMenu
+from Menu import *
 
 # Définir la couleur des obstacles
 OBSTACLE_COLOR = (128, 128, 128)  # Gris
@@ -314,7 +315,18 @@ class Game:
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 has_acted = True
                             else:
-                                print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")    
+                                print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")  
+                        elif event.key == pygame.K_e and len(selected_unit.skills) > 1:
+                            skill = selected_unit.skills[2]  # On prend la seconde compétence (défensive)
+                            cooldown = selected_unit.current_cooldowns[skill.name]
+                            if cooldown == 0:
+                                print(f"{selected_unit.team} used defense skill: {skill.name}")
+                                self.execute_skill(selected_unit, skill)
+                                selected_unit.current_cooldowns[skill.name] = skill.cooldown
+                                print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                has_acted = True
+                            else:
+                                print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
                         # Passer le tour de l'unité
                         elif event.key == pygame.K_SPACE:
                             has_acted = True
@@ -397,6 +409,18 @@ class Game:
                                 has_acted = True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                        elif event.key == pygame.K_e and len(selected_unit.skills) > 1:
+                            skill = selected_unit.skills[2]  # On prend la seconde compétence (défensive)
+                            cooldown = selected_unit.current_cooldowns[skill.name]
+                            if cooldown == 0:
+                                print(f"{selected_unit.team} used defense skill: {skill.name}")
+                                self.execute_skill(selected_unit, skill)
+                                selected_unit.current_cooldowns[skill.name] = skill.cooldown
+                                print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                has_acted = True
+                            else:
+                                print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                        
 
                         elif event.key == pygame.K_SPACE:
                             has_acted = True
@@ -474,9 +498,13 @@ class Game:
                                 if not self.is_unit_visible(target, vision_sources):
                                     print(f"Cible {target.team} à ({target.x}, {target.y}) n'est pas visible.")
                                     return
-    
+                                
+                                if skill.effect == "special":
+                        
+                                    unit.apply_damage(target, skill.damage)
+                                    target.check_health()
                                 # Appliquer les dégâts
-                                if skill.damage > 0:
+                                if skill.damage > 0 and skill.effect != "special":
                                     unit.apply_damage(target, skill.damage)
                                     target.check_health()
     
@@ -615,7 +643,7 @@ def main():
     
     # Modification de l'écran
     screen = pygame.display.set_mode((WIDTH, NEW_HEIGHT))
-   
+    menu=Menu(screen)
 
     # Instanciation du jeu
     game = Game(screen)
@@ -624,9 +652,14 @@ def main():
     print("Position des pièges générés :")
     for trap_position in game.trap.positions:
             print(trap_position)  # Affiche les positions des pièges générés
-
+    while True:
+        menu.draw()
+        action = menu.handle_events()
+        if action == "play":
+            break  # Quitter le menu et démarrer le jeu
     # Boucle principale du jeu
     while True:
+     
         game.handle_player_turn()
         game.handle_enemy_turn()
         game.end_turn()

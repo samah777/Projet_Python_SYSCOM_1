@@ -68,7 +68,7 @@ class SkillMenu:
                 skill_text = f"{skill.name} (Appuyez sur Z)"
             else:
                 # Si vous avez plus de compétences, vous pouvez gérer d'autres touches ou juste afficher le nom
-                skill_text = skill.name
+                skill_text = f"{skill.name} (Appuyez sur E)"
     
             text_surface = font.render(skill_text, True, (255, 255, 255))  # Texte blanc
             screen.blit(text_surface, (x_offset, HEIGHT + 10))  # Texte dans la barre noire

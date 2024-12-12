@@ -8,10 +8,10 @@ class Menu :
         self.screen =screen
         self.font = pygame.font.Font (None, 60) #pygame.font.Font(file, size) est une fonctionnalité de cgarger uene police et taille de la police
         self.title_font = pygame.font.Font (None,80) #pygame.font.Font(file, size) est une fonctionnalité de cgarger uene police et taille de la police
-        self.play_button_rect = pygame.Rect(WIDTH // 2 +50, HEIGHT // 2 + 250, 200, 50) # dimension pour le bouton play largeur 200pixels et hauteur = 100pixels
+        self.play_button_rect = pygame.Rect(WIDTH // 2 -50, HEIGHT // 2 + 275, 200, 50) # dimension pour le bouton play largeur 200pixels et hauteur = 100pixels
         
         self.background_image = pygame.image.load("assets/accc.jpg").convert_alpha()  
-        self.background_image = pygame.transform.smoothscale(self.background_image, (WIDTH+200, HEIGHT)) # Adapter à la taille de l'écran
+        self.background_image = pygame.transform.smoothscale(self.background_image, (WIDTH, HEIGHT+MENU_HEIGHT)) # Adapter à la taille de l'écran
         
     def draw (self) : 
         self.screen.blit(self.background_image, (0, 0)) # afficher l'image en arriere plan 

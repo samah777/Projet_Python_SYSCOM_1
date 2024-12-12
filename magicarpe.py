@@ -49,6 +49,9 @@ class Magicarpe(Unit):
         # On ajoute maintenant une compétence défensive
         attack_defensive =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
         self.add_skills([attack_defensive])
+        
+        attack_special =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        self.add_skills([attack_special])
 
 
 

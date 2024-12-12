@@ -54,6 +54,9 @@ class Carapuce(Unit):
         defense_skill =Skill(name="heal", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="heal", effect_value=5)
         self.add_skills([defense_skill])
         
+        attack_special =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        self.add_skills([attack_special])
+        
         
         
     def transform(self):
