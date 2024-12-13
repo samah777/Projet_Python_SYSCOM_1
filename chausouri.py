@@ -22,12 +22,14 @@ class Chovsouris(Unit):
             Position y de Chovsouris sur la grille.
         """
         # Caractéristiques spécifiques à Chovsouris
+        self.n=2
+
         health = 10
         health_max = 100  # Santé modérée
         self.cooldown=0
         self.attack_power = 4.5  # Attaque modérée
         velocity = 3  # Vitesse rapide
-        team = 'enemy'  # Chovsouris est un ennemi
+        self.team = 'enemy'  # Chovsouris est un ennemi
         self.attack_range = 2  # Portée légèrement augmentée
         self.invulnerable_turns=0
 
@@ -47,7 +49,7 @@ class Chovsouris(Unit):
         
 
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, self.attack_power,velocity, team, self.icon,self.transformed_icon,self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team, self.icon, self.transformed_icon, self.transformation_sound)
         # Initialiser les cooldowns à 0 pour chaque compétence
         thunderbolt = Skill(name="menace",attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
         self.add_skills([thunderbolt])
@@ -123,40 +125,40 @@ class Chovsouris(Unit):
                 player.health -= effective_power
                 print(f"Player at ({player.x}, {player.y}) hit! Remaining health: {player.health}")
 
-    def show_attack_range(self, screen):
-        """
-        Affiche la portée de l'attaque de Chovsouris avec des cases jaunes claires.
+    # def show_attack_range(self, screen):
+    #     """
+    #     Affiche la portée de l'attaque de Chovsouris avec des cases jaunes claires.
 
-        Paramètres
-        ----------
-        screen : pygame.Surface
-            L'écran sur lequel dessiner.
-        """
-        light_yellow = (255, 255, 102)  # Jaune clair
-        for dx in range(-self.attack_range, self.attack_range + 1):
-            for dy in range(-self.attack_range, self.attack_range + 1):
-                if abs(dx) + abs(dy) <= self.attack_range:  # Vérifie que la case est dans la portée
-                    target_x = self.x + dx
-                    target_y = self.y + dy
-                    if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
-                        pygame.draw.rect(
-                            screen, light_yellow,  # Jaune clair pour Chovsouris
-                            (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                            3  # Épaisseur de la bordure
-                        )
+    #     Paramètres
+    #     ----------
+    #     screen : pygame.Surface
+    #         L'écran sur lequel dessiner.
+    #     """
+    #     light_yellow = (255, 255, 102)  # Jaune clair
+    #     for dx in range(-self.attack_range, self.attack_range + 1):
+    #         for dy in range(-self.attack_range, self.attack_range + 1):
+    #             if abs(dx) + abs(dy) <= self.attack_range:  # Vérifie que la case est dans la portée
+    #                 target_x = self.x + dx
+    #                 target_y = self.y + dy
+    #                 if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
+    #                     pygame.draw.rect(
+    #                         screen, light_yellow,  # Jaune clair pour Chovsouris
+    #                         (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+    #                         3  # Épaisseur de la bordure
+    #                     )
 
-    def draw(self, screen):
-        """
-        Dessine Chovsouris et affiche sa portée si sélectionné.
+    # def draw(self, screen):
+    #     """
+    #     Dessine Chovsouris et affiche sa portée si sélectionné.
 
-        Paramètres
-        ----------
-        screen : pygame.Surface
-            L'écran sur lequel dessiner.
-        """
-        # Si Chovsouris est sélectionné, montrer sa portée d'attaque
-        if self.is_selected:
-            self.show_attack_range(screen)
+    #     Paramètres
+    #     ----------
+    #     screen : pygame.Surface
+    #         L'écran sur lequel dessiner.
+    #     """
+    #     # Si Chovsouris est sélectionné, montrer sa portée d'attaque
+    #     if self.is_selected:
+    #         self.show_attack_range(screen)
 
-        # Dessiner l'icône avec la méthode parent
-        super().draw(screen)
+    #     # Dessiner l'icône avec la méthode parent
+    #     super().draw(screen)

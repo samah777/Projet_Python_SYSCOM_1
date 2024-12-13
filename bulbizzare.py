@@ -22,12 +22,14 @@ class Bulbizarre(Unit):
             Position y de Bulbizarre sur la grille.
         """
         # Caractéristiques spécifiques à Bulbizarre
+        self.n=2
+
         health = 10
         self.cooldown=2
         health_max = 10
         self.attack_power = 3
         velocity = 2
-        team = 'player'
+        self.team = 'player'
         self.attack_range = 3  # Portée de l'attaque en nombre de cases
         self.invulnerable_turns=0
 
@@ -43,7 +45,7 @@ class Bulbizarre(Unit):
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
 
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, self.attack_power, velocity, team, self.icon, self.transformed_icon, self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team, self.icon, self.transformed_icon, self.transformation_sound)
         
         attack_offensive = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
         self.add_skills([attack_offensive])
@@ -122,39 +124,39 @@ class Bulbizarre(Unit):
                 enemy.health = max(0, enemy.health - effective_power)
                 print(f"Enemy at ({enemy.x}, {enemy.y}) hit! Remaining health: {enemy.health}")
 
-    def show_attack_range(self, screen):
-        """
-        Affiche la portée de l'attaque de Bulbizarre avec des cases bleues claires.
+    # def show_attack_range(self, screen):
+    #     """
+    #     Affiche la portée de l'attaque de Bulbizarre avec des cases bleues claires.
 
-        Paramètres
-        ----------
-        screen : pygame.Surface
-            L'écran sur lequel dessiner.
-        """
-        for dx in range(-self.attack_range, self.attack_range + 1):
-            for dy in range(-self.attack_range, self.attack_range + 1):
-                if abs(dx) + abs(dy) <= self.attack_range:  # Vérifie que la case est dans la portée
-                    target_x = self.x + dx
-                    target_y = self.y + dy
-                    if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
-                        pygame.draw.rect(
-                            screen, (0, 255,0 ),  # Vert clair pour Bulbizarre
-                            (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                            3  # Épaisseur de la bordure
-                        )
+    #     Paramètres
+    #     ----------
+    #     screen : pygame.Surface
+    #         L'écran sur lequel dessiner.
+    #     """
+    #     for dx in range(-self.attack_range, self.attack_range + 1):
+    #         for dy in range(-self.attack_range, self.attack_range + 1):
+    #             if abs(dx) + abs(dy) <= self.attack_range:  # Vérifie que la case est dans la portée
+    #                 target_x = self.x + dx
+    #                 target_y = self.y + dy
+    #                 if 0 <= target_x < GRID_SIZE and 0 <= target_y < GRID_SIZE:  # Vérifie que la case est valide
+    #                     pygame.draw.rect(
+    #                         screen, (0, 255,0 ),  # Vert clair pour Bulbizarre
+    #                         (target_x * CELL_SIZE, target_y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+    #                         3  # Épaisseur de la bordure
+    #                     )
 
-    def draw(self, screen):
-        """
-        Dessine Bulbizarre et affiche sa portée si sélectionné.
+    # def draw(self, screen):
+    #     """
+    #     Dessine Bulbizarre et affiche sa portée si sélectionné.
 
-        Paramètres
-        ----------
-        screen : pygame.Surface
-            L'écran sur lequel dessiner.
-        """
-        # Si Bulbizarre est sélectionné, montrer sa portée d'attaque
-        if self.is_selected:
-            self.show_attack_range(screen)
+    #     Paramètres
+    #     ----------
+    #     screen : pygame.Surface
+    #         L'écran sur lequel dessiner.
+    #     """
+    #     # Si Bulbizarre est sélectionné, montrer sa portée d'attaque
+    #     if self.is_selected:
+    #         self.show_attack_range(screen)
 
-        # Dessiner l'icône avec la méthode parent
-        super().draw(screen)
+    #     # Dessiner l'icône avec la méthode parent
+    #     super().draw(screen)
