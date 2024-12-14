@@ -9,7 +9,7 @@ class Salameche(Unit):
     Classe représentant Salamèche, héritant de Unit.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y,console):
         """
         Initialise Salamèche avec des caractéristiques spécifiques.
 
@@ -42,16 +42,18 @@ class Salameche(Unit):
         
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
         # Appeler le constructeur parent avec une icône spécifique à Salamèche
-        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team, self.icon, self.transformed_icon, self.transformation_sound)
-        
-        attack_offensive = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team ,self.icon, self.transformed_icon, self.transformation_sound,console)
+        # une compétence offensive
+        attack_offensive = Skill(name="Flammèche", attack_range=self.attack_range, damage=self.attack_power+1, cooldown=self.cooldown,effect="attack", effect_value=5)
         self.add_skills([attack_offensive])
-        # Supposons qu'on ait déjà ajouté une compétence offensive
-        # On ajoute maintenant une compétence défensive
-        attack_defensive =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        
+        # une compétence défensive
+        attack_defensive =Skill(name="Éclat de Vie", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="heal", effect_value=1)
         self.add_skills([attack_defensive])
         
-        attack_special =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        # une compétence spécial
+
+        attack_special =Skill(name="DracoRage", attack_range=self.attack_range, damage=self.attack_power+2, cooldown=self.cooldown+2,effect="shield", effect_value=1)
         self.add_skills([attack_special])
 
 
@@ -59,9 +61,16 @@ class Salameche(Unit):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
             print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
             self.icon = self.transformed_icon  # Changer l'icône
-            # self.attack += 2  # Exemple : augmenter la puissance d'attaque
-            # self.health += 4
+            
+            
+            self.health+= 2  # Exemple : augmenter la puissance d'attaque
+            self.skills[0]= Skill(name="Flammèche", attack_range=self.attack_range+1, damage=5, cooldown=self.cooldown,effect="attack", effect_value=5)
+            self.skills[1]= Skill(name="Éclat de Vie", attack_range=self.attack_range+1, damage=0, cooldown=self.cooldown,effect="heal", effect_value=2)
+            self.skills[2]= Skill(name="DracoRage", attack_range=self.attack_range+1, damage=7, cooldown=self.cooldown+3,effect="attack", effect_value=5)
+            
+            
             self.is_transformed = True  # Marquer l'unité comme transformée
             # Jouer le son de transformation
         if self.transformation_sound:
@@ -71,7 +80,8 @@ class Salameche(Unit):
     def check_health(self):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
-            print(f"salameche unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+            print(f"magicarpe unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) died!")
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
 

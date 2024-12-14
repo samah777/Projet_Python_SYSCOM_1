@@ -17,6 +17,7 @@ from Menu import *
 from buton import *
 from trap import *
 from PIL import Image
+from console import Console
 
 
 class Obstacle:
@@ -62,6 +63,9 @@ class Game:
         Construit le jeu avec la surface de la fenêtre.
         """
         self.screen = screen
+        self.console = Console(screen)
+
+        self.messages=[]
         
         self.skill_menu = SkillMenu()
         
@@ -74,10 +78,10 @@ class Game:
            
         # Créer les unités (avant de générer les positions valides)
         self.player_units = [
-            Pikachu(0, 0),Salameche(1,0),Carapuce(2,0),Bulbizarre(3, 0)]
+            Pikachu(0, 0,console=self.console),Salameche(1,0,console=self.console),Carapuce(2,0,console=self.console),Bulbizarre(3, 0,console=self.console)]
             # ,Salameche(1,0),Carapuce(2,0),Bulbizarre(3, 0)
 
-        self.enemy_units = [Magicarpe(6,6),Qulbutoke(7,6),Chovsouris(8,6),Miaouss(9,6)]
+        self.enemy_units = [Magicarpe(6,6,console=self.console),Qulbutoke(7,6,console=self.console),Chovsouris(8,6,console=self.console),Miaouss(9,6,console=self.console)]
            # Magicarpe(6,6),Qulbutoke(7,6), ,Miaouss(9,6)
             
         # Générer les positions valides (unités et obstacles exclus)
@@ -89,7 +93,7 @@ class Game:
         
            
         # Créer un piège aléatoire
-        self.trap = Trap('assets/animations/animation_caitlyne', 'assets/trap_sound.mp3')
+        self.trap = Trap('assets/animations/animation_caitlyne', 'assets/trap_sound.mp3',console=self.console)
         self.trap.generate_traps(GRID_SIZE, num_traps=5, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
         
         
@@ -146,6 +150,7 @@ class Game:
         """
         current_turn = 'player'
         for selected_unit in self.player_units[:]:
+            self.console.add_message("====== Nouvelle unité ======")
             
 
             # Mettre à jour le carré de mouvement pour l'unité
@@ -153,11 +158,13 @@ class Game:
     
             if selected_unit.health <= 0:
                 print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
+                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
                 self.player_units.remove(selected_unit)
                 continue
     
             if selected_unit.stunned_turns > 0:
                 print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
+                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
                 selected_unit.stunned_turns -= 1
                 continue
     
@@ -165,6 +172,7 @@ class Game:
             has_acted = False
     
             while not has_acted:
+                
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
@@ -198,6 +206,7 @@ class Game:
                                         break
                             else:
                                 print(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
+                                self.console.add_message(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
     
                         # Utilisation d'une compétence
                         elif event.key == pygame.K_a and selected_unit.skills:
@@ -205,38 +214,47 @@ class Game:
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
                                 print(f"Player used skill: {skill.name}")
+                                self.console.add_message(f"Player used skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
-                                
-
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
-                                has_acted = True
+                                self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                has_acted=True
+                                
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
     
                         elif event.key == pygame.K_z and len(selected_unit.skills) > 1:
                             skill = selected_unit.skills[1]  # On prend la seconde compétence (défensive)
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
                                 print(f"{selected_unit.team} used defense skill: {skill.name}")
+                                self.console.add_message(f"{selected_unit.team} used defense skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 has_acted = True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                
     
                         elif event.key == pygame.K_e and len(selected_unit.skills) > 2:
                             skill = selected_unit.skills[2]  # On prend la troisième compétence
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
                                 print(f"{selected_unit.team} used skill: {skill.name}")
+                                self.console.add_message(f"{selected_unit.team} used skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 has_acted = True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
     
                         elif event.key == pygame.K_SPACE:
                             has_acted = True
@@ -258,6 +276,7 @@ class Game:
         
         current_turn = 'enemy'
         for selected_unit in self.enemy_units[:]:
+            self.console.add_message("====== Nouvelle unité ======")
             
             
             # Mettre à jour le carré de mouvement pour l'unité
@@ -265,10 +284,12 @@ class Game:
     
             if selected_unit.health <= 0:
                 print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
+                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
                 self.enemy_units.remove(selected_unit)
                 continue
             if selected_unit.stunned_turns > 0:
                 print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
+                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
                 selected_unit.stunned_turns -= 1
                 continue
     
@@ -309,6 +330,7 @@ class Game:
                                         break
                             else:
                                 print(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
+                                self.console.add_message(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
     
                         # Utilisation d'une compétence
                         elif event.key == pygame.K_a and selected_unit.skills:
@@ -316,40 +338,51 @@ class Game:
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
                                 print(f"Enemy used skill: {skill.name}")
+                                self.console.add_message(f"Enemy used skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 has_acted = True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
     
                         elif event.key == pygame.K_z and len(selected_unit.skills) > 1:
                             skill = selected_unit.skills[1]  # On prend la seconde compétence (défensive)
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
                                 print(f"{selected_unit.team} used defense skill: {skill.name}")
+                                self.console.add_message(f"{selected_unit.team} used defense skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 has_acted = True
+                                
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
     
                         elif event.key == pygame.K_e and len(selected_unit.skills) > 2:
                             skill = selected_unit.skills[2]  # On prend la troisième compétence
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
                                 print(f"{selected_unit.team} used skill: {skill.name}")
+                                self.console.add_message(f"{selected_unit.team} used skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
+                                
                                 
 
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 has_acted = True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
     
                         elif event.key == pygame.K_SPACE:
                             has_acted = True
@@ -389,13 +422,16 @@ class Game:
             if skill.effect == "heal":
                 unit.health = min(unit.health + skill.effect_value, 10)
                 print(f"{unit.team} unit at ({unit.x}, {unit.y}) healed for {skill.effect_value} points. Current health: {unit.health}.")
+                self.console.add_message(f"{unit.team} unit at ({unit.x}, {unit.y}) healed for {skill.effect_value} points. Current health: {unit.health}.")
             elif skill.effect == "shield":
                 unit.invulnerable_turns = skill.effect_value
                 print(f"{unit.team} unit at ({unit.x}, {unit.y}) is now invulnerable for {skill.effect_value} turn(s).")
+                self.console.add_message(f"{unit.team} unit at ({unit.x}, {unit.y}) is now invulnerable for {skill.effect_value} turn(s).")
     
             # Mettre la compétence en cooldown
             unit.current_cooldowns[skill.name] = skill.cooldown
             print(f"{skill.name} mis en cooldown pour {skill.cooldown} tours.")
+            self.console.add_message(f"{skill.name} mis en cooldown pour {skill.cooldown} tours.")
             unit.is_using_skill = False  # Désactiver immédiatement après l'exécution
             return
     
@@ -417,6 +453,7 @@ class Game:
                             distance = abs(unit.x - cursor_x) + abs(unit.y - cursor_y)
                             if distance > skill.range:
                                 print(f"Case hors de portée (distance : {distance}, portée maximale : {skill.range}).")
+                                self.console.add_message(f"Case hors de portée (distance : {distance}, portée maximale : {skill.range}).")
                                 selecting_target = False
                                 unit.is_using_skill = False
                                 return
@@ -430,13 +467,23 @@ class Game:
                                 if skill.damage > 0:
                                     unit.apply_damage(target, skill.damage)
                                     target.check_health()
+                                    if target.health<=0:
+                                        if target.team == 'player':
+                                            self.player_units.remove(target)
+                                        elif target.team == 'enemy':
+                                            self.enemy_units.remove(target)
+                                        # target.icon=None
+                                        self.flip_display(target.team)
     
                                 # Appliquer les effets
                                 if skill.effect == "stun":
                                     target.stunned_turns = skill.effect_value
                                     print(f"{target.team} unit at ({target.x}, {target.y}) is stunned for {skill.effect_value} turn(s).")
+                                    self.console.add_message(f"{target.team} unit at ({target.x}, {target.y}) is stunned for {skill.effect_value} turn(s).")
+                                 
                             else:
                                 print(f"Aucune cible trouvée à la case ({cursor_x}, {cursor_y}).")
+                                self.console.add_message(f"Aucune cible trouvée à la case ({cursor_x}, {cursor_y}).")
     
                             selecting_target = False
                             unit.is_using_skill = False  # Désactiver après avoir terminé l'action
@@ -457,6 +504,7 @@ class Game:
             # Mettre la compétence en cooldown après sélection
             unit.current_cooldowns[skill.name] = skill.cooldown
             print(f"{skill.name} mis en cooldown pour {skill.cooldown} tours.")
+            self.console.add_message(f"{skill.name} mis en cooldown pour {skill.cooldown} tours.")
         
             
     def end_turn(self):
@@ -468,9 +516,9 @@ class Game:
             if unit.invulnerable_turns > 0:
                 unit.invulnerable_turns -= 1
 
-
-
     
+
+ 
     #2 joueurs
     def flip_display(self, current_turn, skill_position=None, skill_mode=False):
         """
@@ -535,7 +583,8 @@ class Game:
         if selected_unit and selected_unit.skills:
             self.skill_menu.update_unit(selected_unit)  # Mettre à jour le menu avec l'unité sélectionnée
             self.skill_menu.draw(self.screen)  # Dessiner le menu
-    
+        
+        self.console.draw_message_bar()
         pygame.display.flip()
 
 def get_font(size):
@@ -551,7 +600,7 @@ def main_menu(screen):
     
     # Redimensionner avec une interpolation de haute qualité
     
-    resized_image = original_image.resize((WIDTH, HEIGHT + MENU_HEIGHT), Image.LANCZOS)
+    resized_image = original_image.resize((WIDTH+600, HEIGHT + MENU_HEIGHT), Image.LANCZOS)
 
     # Sauvegarder l'image redimensionnée temporairement
     
@@ -606,12 +655,12 @@ def main_menu(screen):
 def main():
     # Initialisation de Pygame
     pygame.init()
-
+    
     # Hauteur pour la barre noire en bas
     NEW_HEIGHT = HEIGHT + MENU_HEIGHT  # Nouvelle hauteur de l'écran
-
+    NEW_WIDTH = WIDTH + 600
     # Modification de l'écran
-    screen = pygame.display.set_mode((WIDTH, NEW_HEIGHT))
+    screen = pygame.display.set_mode((NEW_WIDTH, NEW_HEIGHT))
     pygame.display.set_caption("Mon jeu de stratégie")
 
     action = main_menu(screen)
@@ -623,21 +672,19 @@ def main():
     for trap_position in game.trap.positions:
         print(trap_position)  # Affiche les positions des pièges générés
 
-    # Initialisation du tour
-    current_turn = "player"  # Le joueur commence
 
     # Boucle principale du jeu
     while True:
         # Mettre à jour l'affichage en fonction du tour
-        game.flip_display(current_turn)
+        
 
         # Gérer le tour actuel
-        if current_turn == "player":
-            game.handle_player_turn()
-            current_turn = "enemy"  # Passer au tour de l'ennemi
-        elif current_turn == "enemy":
-            game.handle_enemy_turn()
-            current_turn = "player"  # Passer au tour du joueur
+        
+        game.handle_player_turn()
+        
+        
+        game.handle_enemy_turn()
+           
 
         # Terminer le tour
         game.end_turn()

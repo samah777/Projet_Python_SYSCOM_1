@@ -11,7 +11,7 @@ class Pikachu(Unit):
     Classe représentant Pikachu, héritant de Unit.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y,console):
         """
         Initialise Pikachu avec des caractéristiques spécifiques.
 
@@ -28,7 +28,7 @@ class Pikachu(Unit):
         health = 10
         self.cooldown=2
         health_max = 10
-        self.attack_power = 3
+        self.attack_power =2
         velocity = 2
         self.team = 'player'
         self.attack_range = 3  # Portée de l'attaque en nombre de cases
@@ -48,48 +48,23 @@ class Pikachu(Unit):
 
 
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team, self.icon, self.transformed_icon, self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team ,self.icon, self.transformed_icon, self.transformation_sound,console)
         
         thunderbolt = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
         self.add_skills([thunderbolt])
         # Supposons qu'on ait déjà ajouté une compétence offensive
         # On ajoute maintenant une compétence défensive
-        defense_skill =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        defense_skill =Skill(name="Queue de fer", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
         self.add_skills([defense_skill])
         
-        attack_special =Skill(name="coups de tonner", attack_range=self.attack_range, damage=5, cooldown=5,effect="special", effect_value=1)
+        attack_special =Skill(name="Coups de tonnerre", attack_range=self.attack_range, damage=self.attack_power+3, cooldown=self.cooldown+3,effect="special", effect_value=1)
         self.add_skills([attack_special])
 
         
         # Initialiser les cooldowns à 0 pour chaque compétence
         
 
-        # Ajouter les compétences spécifiques à Pikachu
-        
 
-    def use_eclair(self, game, cursor_x, cursor_y):
-        """
-        Exécute la compétence "Éclair" sur une cible.
-
-        Paramètres
-        ----------
-        game : Game
-            Instance du jeu.
-        cursor_x : int
-            Position x de la case ciblée.
-        cursor_y : int
-            Position y de la case ciblée.
-        """
-        # Vérifier si la cible est valide
-        target = next((enemy for enemy in game.enemy_units if enemy.x == cursor_x and enemy.y == cursor_y), None)
-        if target:
-            # Infliger des dégâts
-            target.health -= 2
-            print(f"{self.skills[0].name} utilisé sur ({target.x}, {target.y}) ! Santé restante : {target.health}")
-            if target.health <= 0:
-                game.enemy_units.remove(target)  # Retirer l'ennemi s'il est mort
-        else:
-            print(f"Aucune cible ennemie dans la case ({cursor_x}, {cursor_y}).")
 
 
 
@@ -97,9 +72,15 @@ class Pikachu(Unit):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
             print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
             self.icon = self.transformed_icon  # Changer l'icône
-            # self.attack += 2  # Exemple : augmenter la puissance d'attaque
-            # self.health += 4
+            self.health+= 2  # Exemple : augmenter la puissance d'attaque
+            self.skills[0]= Skill(name="Éclair", attack_range=self.attack_range+1, damage=5, cooldown=self.cooldown,effect="attack", effect_value=5)
+            self.skills[1]= Skill(name="Queue de fer", attack_range=self.attack_range+1, damage=0, cooldown=self.cooldown,effect="shield", effect_value=2)
+            self.skills[2]= Skill(name="Coups de tonnerre", attack_range=self.attack_range+1, damage=7, cooldown=self.cooldown+4,effect="attack", effect_value=5)
+            
+            
+
             self.is_transformed = True  # Marquer l'unité comme transformée
             # Jouer le son de transformation
         if self.transformation_sound:
@@ -110,6 +91,7 @@ class Pikachu(Unit):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
             print(f"Pikatchu unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+            self.console.add_message(f"Pikatchu unit at ({self.x}, {self.y}) died!")
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
 

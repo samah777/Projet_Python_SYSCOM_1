@@ -7,10 +7,10 @@ from constante import *
 OBSTACLE_COLOR = (128, 128, 128)  # Gris
 
 class Trap:
-    """Classe pour gérer les pièges dans le jeu avec une animation."""
+    """Classe pour gérer les pièges dans le jeu avec une animation et la gestion des messages via Console."""
 
-    def __init__(self, animation_folder, sound_path):
-        """Initialise les pièges avec animations et sons."""
+    def __init__(self, animation_folder, sound_path, console):
+        """Initialise les pièges avec animations, sons et console."""
         self.positions = []  # Liste des positions des pièges invisibles
         self.visible_traps = []  # Liste des pièges visibles
 
@@ -21,6 +21,7 @@ class Trap:
         self.animation_counter = 0
 
         self.sound = pygame.mixer.Sound(sound_path)  # Charger le son du piège
+        self.console = console  # Stocker l'instance de Console pour les messages
 
     def load_animation_frames(self, folder_path):
         """Charge toutes les frames d'animation depuis un dossier."""
@@ -46,9 +47,9 @@ class Trap:
 
     def trigger_trap(self, unit):
         """Déclenche l'effet d'un piège."""
-        print(f"{unit.team} unit at ({unit.x}, {unit.y}) stepped on a trap!")
+        self.console.add_message(f"{unit.team} unit at ({unit.x}, {unit.y}) stepped on a trap!")
         unit.health -= 4.5
-        print(f"{unit.team} unit's health is now {unit.health}.")
+        self.console.add_message(f"{unit.team} unit's health is now {unit.health:.1f}.")
         unit.check_health()
         if (unit.x, unit.y) in self.positions:
             self.visible_traps.append((unit.x, unit.y))
@@ -67,5 +68,3 @@ class Trap:
         for trap_position in self.visible_traps:
             frame = self.frames[self.current_frame_index]
             screen.blit(frame, (trap_position[0] * CELL_SIZE, trap_position[1] * CELL_SIZE))
-
-

@@ -10,7 +10,7 @@ class Magicarpe(Unit):
     Classe représentant Magicarpe, héritant de Unit.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y,console):
         """
         Initialise Magicarpe avec des caractéristiques spécifiques.
 
@@ -27,7 +27,7 @@ class Magicarpe(Unit):
         health = 10
         self.cooldown=2
         health_max = 10
-        self.attack_power = 3
+        self.attack_power = 2.5
         velocity = 2
         self.team = 'enemy'
         self.attack_range = 3  # Portée de l'attaque en nombre de cases
@@ -43,16 +43,16 @@ class Magicarpe(Unit):
         
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
         # Appeler le constructeur parent avec une icône spécifique à Magicarpe
-        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team, self.icon, self.transformed_icon, self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team ,self.icon, self.transformed_icon, self.transformation_sound,console)
         
-        attack_offensive = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
+        attack_offensive = Skill(name="Charge", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
         self.add_skills([attack_offensive])
         # Supposons qu'on ait déjà ajouté une compétence offensive
         # On ajoute maintenant une compétence défensive
-        attack_defensive =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        attack_defensive =Skill(name="Protéction", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=2)
         self.add_skills([attack_defensive])
         
-        attack_special =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        attack_special =Skill(name="Cascade", attack_range=self.attack_range, damage=self.attack_power+1, cooldown=self.cooldown,effect="stun", effect_value=1)
         self.add_skills([attack_special])
 
 
@@ -61,9 +61,16 @@ class Magicarpe(Unit):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
             print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
             self.icon = self.transformed_icon  # Changer l'icône
-            # self.attack += 2  # Exemple : augmenter la puissance d'attaque
-            # self.health += 4
+            
+            
+            self.health+= 2  # Exemple : augmenter la puissance d'attaque
+            self.skills[0]= Skill(name="Charge", attack_range=self.attack_range+1, damage=5, cooldown=self.cooldown+1,effect="attack", effect_value=5)
+            self.skills[1]= Skill(name="Protéctionr", attack_range=self.attack_range+1, damage=0, cooldown=self.cooldown,effect="shield", effect_value=2)
+            self.skills[2]= Skill(name="Cascade", attack_range=self.attack_range+1, damage=6, cooldown=self.cooldown+1,effect="attack", effect_value=5)
+            
+            
             self.is_transformed = True  # Marquer l'unité comme transformée
             # Jouer le son de transformation
         if self.transformation_sound:
@@ -74,6 +81,7 @@ class Magicarpe(Unit):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
             print(f"magicarpe unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) died!")
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
 

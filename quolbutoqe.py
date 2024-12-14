@@ -10,7 +10,7 @@ class Qulbutoke(Unit):
     Classe représentant Qulbutoké, héritant de Unit.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y,console):
         """
         Initialise Qulbutoké avec des caractéristiques spécifiques.
 
@@ -43,23 +43,24 @@ class Qulbutoke(Unit):
         
         self.transformation_sound = None
         # Appeler le constructeur parent avec une icône spécifique à Qulbutoké
-        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team, self.icon, self.transformed_icon, self.transformation_sound)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team ,self.icon, self.transformed_icon, self.transformation_sound,console)
         
-        attack_offensive = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
+        attack_offensive = Skill(name="Riposte", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown+1,effect="attack", effect_value=5)
         self.add_skills([attack_offensive])
         # Supposons qu'on ait déjà ajouté une compétence offensive
         # On ajoute maintenant une compétence défensive
-        attack_defensive =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        attack_defensive =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown+1,effect="shield", effect_value=2)
         self.add_skills([attack_defensive])
         
-        attack_special =Skill(name="barriere", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="shield", effect_value=1)
+        attack_special =Skill(name="Heal", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown+2,effect="Heal", effect_value=5)
         self.add_skills([attack_special])
 
 
     def transform(self):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
-            print(f"quolbutoqe unit at ({self.x}, {self.y}) transforms!")
+            print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
             self.icon = self.transformed_icon  # Changer l'icône
             # self.attack += 2  # Exemple : augmenter la puissance d'attaque
             # self.health += 4
@@ -72,7 +73,8 @@ class Qulbutoke(Unit):
     def check_health(self):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
-            print(f"quolbutoqe unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+            print(f"magicarpe unit at ({self.x}, {self.y}) died!")  # L'unité est morte
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) died!")
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
 

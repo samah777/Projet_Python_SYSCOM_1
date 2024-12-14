@@ -2,7 +2,7 @@ import pygame
 import random
 from constante import *
 from vision import *
-
+from console import Console
 
 
 class Unit:
@@ -35,7 +35,7 @@ class Unit:
         Dessine l'unité sur la grille.
     """
 
-    def __init__(self, x, y, health, health_max, attack_power,velocity, team, icon,transformed_icon=None,transformation_sound=None):
+    def __init__(self, x, y, health, health_max, attack_power,velocity, team, icon,transformed_icon=None,transformation_sound=None,console=None):
         """
         Construit une unité avec une position, une santé, une puissance d'attaque et une équipe.
 
@@ -71,7 +71,9 @@ class Unit:
         self.current_cooldowns = {}
         self.stunned_turns = 0  # Nombre de tours où l'unité est étourdie
         self.invulnerable_turns = 0  # Nombre de tours où l'unité est invulnérable
-
+        self.console=console
+        
+        
         
         
         
@@ -81,6 +83,7 @@ class Unit:
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
             print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
             self.icon = self.transformed_icon  # Changer l'icône
             # self.attack += 2  # Exemple : augmenter la puissance d'attaque
             # self.health += 4
@@ -113,7 +116,21 @@ class Unit:
     def check_health(self):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
-            print(f"{unit.team} unit at ({unit.x}, {unit.y}) died!")  # L'unité est morte
+            
+            # Log de la mort
+            self.console.add_message("zebi")
+            print(f"{self.team} unit at ({self.x}, {self.y}) is dead!")
+            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) is dead!")
+    
+            # Supprimer l'unité des listes actives
+            if self.team == 'player':
+                game.player_units.remove(self)
+                
+            elif self.team == 'enemy':
+                self.console.add_message("zebi")
+                game.enemy_units.remove(self)
+            self.icon=None
+            game.flip_display(self.team)
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
     
@@ -149,18 +166,28 @@ class Unit:
         """Attaque une unité cible."""
         if abs(self.x - target.x) <= 1 and abs(self.y - target.y) <= 1:
             target.health -= self.attack_power
-            
+    
+    
+    
+    
     def apply_damage(self, target, damage):
         if target.invulnerable_turns > 0:
             print(f"{target.team} unit is invulnerable and takes no damage!")
+            self.console.add_message(f"{target.team} unit is invulnerable and takes no damage!")
             return
         
         # Si pas invulnérable, on applique les dégâts
         target.health -= damage
         print(f"{self.team} unit attacked {target.team} unit at ({target.x}, {target.y}). Damage: {damage}. Remaining health: {target.health}")
+        self.console.add_message(f"{self.team} unit attacked {target.team} unit at ({target.x}, {target.y}). Damage: {damage}. Remaining health: {target.health}") 
         
         if target.health <= 0:
             print(f"{target.team} unit at ({target.x}, {target.y}) is dead.")
+            
+            
+            self.console.add_message(f"{target.team} unit at ({target.x}, {target.y}) is dead.")
+
+            
 
     
 
@@ -170,51 +197,71 @@ class Unit:
         
 
             
-    def check_death(self, game):
-        """Vérifie si l'unité est morte et la retire de la liste des unités actives."""
-        if self.health <= 0:
-            print(f"{self.team} unit at ({self.x}, {self.y}) is dead!")
-            if self.team == 'player':
-                game.player_units.remove(self)
-            else:
-                game.enemy_units.remove(self)
-            return True
-        return False
-
-
-            
-    def draw(self, screen):
+    # def check_death(self, game):
+    #     """Vérifie si l'unité est morte et la retire de la liste des unités actives."""
+    #     if self.health <= 0:
+    #         print(f"{self.team} unit at ({self.x}, {self.y}) is dead!")
+    #         self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) is dead!")
+    #         if self.team == 'player':
+    #             game.player_units.remove(self)
+    #         else:
+    #             game.enemy_units.remove(self)
+    #         return True
+    #     return False
+    
+    def show_movement_range(self, screen):
         """
-        Dessine l'unité et affiche sa portée si une compétence est utilisée.
+        Affiche les cases où l'unité peut se déplacer en bleu.
     
         Paramètres
         ----------
         screen : pygame.Surface
             L'écran sur lequel dessiner.
         """
+        for x, y in self.movement_square:
+            pygame.draw.rect(
+                screen, (0, 0, 255),  # Bleu pour les cases de mouvement
+                (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                2  # Épaisseur de la bordure
+            )
+
+
+
+            
+    def draw(self, screen):
+        """
+        Dessine l'unité et affiche sa portée si une compétence est utilisée ou sa zone de déplacement.
+    
+        Paramètres
+        ----------
+        screen : pygame.Surface
+            L'écran sur lequel dessiner.
+        """
+        # Afficher la zone de déplacement en bleu si l'unité est sélectionnée
+        if self.is_selected:
+            self.show_movement_range(screen)
         # Afficher la portée si une compétence est utilisée
         if self.is_using_skill:
             self.show_attack_range(screen)
     
-        # Si l'unité est sélectionnée, dessiner un fond
+
+    
+        # Dessiner un rectangle vert pour les joueurs et rouge pour les ennemis
         if self.is_selected:
-            pygame.draw.rect(screen, (0, 255, 0), (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            rect_color = (0, 255, 0) if self.team == 'player' else (255, 0, 0)
+            pygame.draw.rect(screen, rect_color, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
     
         # Dessiner l'icône
         if self.icon:
             screen.blit(self.icon, (self.x * CELL_SIZE, self.y * CELL_SIZE))
-        else:
-            # Dessiner un cercle si pas d'icône
-            color = (255, 255, 0) if self.team == 'player' else (255, 0, 0)  # Jaune ou rouge
-            pygame.draw.circle(screen, color, 
-                               (self.x * CELL_SIZE + CELL_SIZE // 2, self.y * CELL_SIZE + CELL_SIZE // 2), 
-                               CELL_SIZE // 3)
+
     
         # Dessiner la barre de vie
         health_ratio = max(self.health / 10, 0)  # Ratio de santé entre 0 et 1
         health_bar_width = int(CELL_SIZE * health_ratio)
         pygame.draw.rect(screen, (255, 0, 0), (self.x * CELL_SIZE, self.y * CELL_SIZE - 10, CELL_SIZE, 5))  # Fond rouge
         pygame.draw.rect(screen, (0, 255, 0), (self.x * CELL_SIZE, self.y * CELL_SIZE - 10, health_bar_width, 5))  # Barre verte
+
 
 
 
