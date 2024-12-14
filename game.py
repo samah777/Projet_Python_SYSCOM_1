@@ -15,6 +15,7 @@ import os
 from Skillmenu import SkillMenu
 from Menu import *
 from buton import *
+from bonus import *
 from trap import *
 from PIL import Image
 from console import Console
@@ -50,7 +51,6 @@ class Obstacle:
         """Dessine les obstacles sur l'écran en utilisant l'image."""
         for x, y in self.positions:
             screen.blit(self.obstacle_image, (x * CELL_SIZE, y * CELL_SIZE))  # Dessiner l'image de l'obstacle à la position correspondante
-
 
 
 class Game:
@@ -92,13 +92,13 @@ class Game:
         self.obstacles.generate_obstacles(GRID_SIZE, num_obstacles=30, unit_positions=self.get_unit_positions())
         
            
-        # Créer un piège aléatoire
+         # Créer un piège et un bonus aléatoires
+        self.bonus = BonusItem('assets/star.jpg', 'assets/star_sound.mp3',console=self.console)
+        self.bonus.generate_bonus(GRID_SIZE, num_bonus=7, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
         self.trap = Trap('assets/animations/animation_caitlyne', 'assets/trap_sound.mp3',console=self.console)
-        self.trap.generate_traps(GRID_SIZE, num_traps=5, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
+        self.trap.generate_traps(GRID_SIZE, num_traps=7, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
         
-        
-        
-        
+
     def get_unit_positions(self):
         """Retourne la liste des positions occupées par les unités."""
         unit_positions = []
@@ -204,6 +204,9 @@ class Game:
                                         self.player_units.remove(selected_unit)
                                         has_acted = True
                                         break
+                                if self.bonus.check_for_bonus(selected_unit.x, selected_unit.y):
+                                    self.bonus.trigger_bonus(selected_unit)  # generer l'etoile et augmenter les points de vie
+
                             else:
                                 print(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
                                 self.console.add_message(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
@@ -328,6 +331,8 @@ class Game:
                                         self.enemy_units.remove(selected_unit)
                                         has_acted = True
                                         break
+                                if self.bonus.check_for_bonus(selected_unit.x, selected_unit.y):
+                                    self.bonus.trigger_bonus(selected_unit)  # generer l'etoile et augmenter les points de viee
                             else:
                                 print(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
                                 self.console.add_message(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
@@ -544,6 +549,9 @@ class Game:
                 rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
                 pygame.draw.rect(self.screen, WHITE, rect, 1)
     
+        # Dessiner les étoiles
+        self.bonus.draw(self.screen)
+
         # Dessiner les obstacles
         self.obstacles.draw(self.screen)
     
@@ -667,6 +675,10 @@ def main():
 
     if action == "play":
         game = Game(screen)
+
+    print("Position des étoiles générés :")
+    for bonus_position in game.bonus.positions:
+            print(bonus_position)  # Affiche les positions des étoiles générés
 
     print("Position des pièges générés :")
     for trap_position in game.trap.positions:
