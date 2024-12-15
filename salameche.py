@@ -52,7 +52,7 @@ class Salameche(Unit):
         
         # une compétence spécial
 
-        attack_special =Skill(name="DracoRage", attack_range=self.attack_range, damage=self.attack_power+2, cooldown=self.cooldown+2,effect="shield", effect_value=1)
+        attack_special =Skill(name="DracoRage", attack_range=self.attack_range, damage=self.attack_power+2, cooldown=self.cooldown+2,effect="attack", effect_value=1)
         self.add_skills([attack_special])
 
 
