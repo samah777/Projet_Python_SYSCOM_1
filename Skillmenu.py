@@ -1,9 +1,6 @@
 from constante import *
 import pygame
 
-
-
-
 class SkillMenu:
     """
     Classe pour afficher le menu des compétences d'une unité.
@@ -37,6 +34,7 @@ class SkillMenu:
             Direction (1 pour bas, -1 pour haut).
         """
         self.selected_index = (self.selected_index + direction) % len(self.skills)
+
     def update_unit(self, unit):
         """
         Met à jour le menu avec l'unité donnée.
@@ -48,7 +46,6 @@ class SkillMenu:
         """
         self.unit = unit
         self.skills = unit.skills  # Mettre à jour la liste des compétences
-
 
     def draw(self, screen):
         # Définir la hauteur de la barre noire
@@ -67,10 +64,14 @@ class SkillMenu:
             elif i == 1:
                 skill_text = f"{skill.name} (Appuyez sur Z)"
             else:
-                # Si vous avez plus de compétences, vous pouvez gérer d'autres touches ou juste afficher le nom
                 skill_text = f"{skill.name} (Appuyez sur E)"
     
             text_surface = font.render(skill_text, True, (255, 255, 255))  # Texte blanc
             screen.blit(text_surface, (x_offset, HEIGHT + 10))  # Texte dans la barre noire
             x_offset += 300  # Décalage horizontal pour les compétences suivantes
 
+        # Ajouter le texte sous les compétences
+        instruction_text = "Appuyez sur Entrée pour activer la compétence sélectionnée."
+        instruction_surface = font.render(instruction_text, True, (255, 0, 0))
+        # Positionner juste sous les compétences, en utilisant le dernier décalage x
+        screen.blit(instruction_surface, ((WIDTH -600) // 2 , HEIGHT + 40))

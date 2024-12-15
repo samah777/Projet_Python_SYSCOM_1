@@ -18,6 +18,7 @@ from buton import *
 from trap import *
 from PIL import Image
 from console import Console
+from choixdejoueurs import *
 
 
 class Obstacle:
@@ -58,7 +59,7 @@ class Game:
     Classe pour représenter le jeu.
     """
 
-    def __init__(self, screen):
+    def __init__(self, screen,player_pokemons, enemy_pokemons):
         """
         Construit le jeu avec la surface de la fenêtre.
         """
@@ -74,18 +75,38 @@ class Game:
 
         self.background = pygame.image.load('assets/background.png')
         self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
+        self.obstacles = Obstacle('assets/obstacle.png')
    
            
         # Créer les unités (avant de générer les positions valides)
-        self.player_units = [
-            Pikachu(0, 0,console=self.console),Salameche(1,0,console=self.console),Carapuce(2,0,console=self.console),Bulbizarre(3, 0,console=self.console)]
-            # ,Salameche(1,0),Carapuce(2,0),Bulbizarre(3, 0)
+        upper_zone = [(x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE // 2)]
+        lower_zone = [(x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE // 2, GRID_SIZE)]
 
-        self.enemy_units = [Magicarpe(6,6,console=self.console),Qulbutoke(7,6,console=self.console),Chovsouris(8,6,console=self.console),Miaouss(9,6,console=self.console)]
-           # Magicarpe(6,6),Qulbutoke(7,6), ,Miaouss(9,6)
+        # Filtrer les positions valides dans les zones
+        upper_zone = [pos for pos in upper_zone if pos not in self.obstacles.positions]
+        lower_zone = [pos for pos in lower_zone if pos not in self.obstacles.positions]
+
+        # Mélanger les positions pour un placement aléatoire
+        random.shuffle(upper_zone)
+        random.shuffle(lower_zone)
+
+        self.player_units = []
+        for pokemon_class in player_pokemons:
+            if not callable(pokemon_class) or not isinstance(pokemon_class, type):  # Vérifie que c'est une classe
+                raise TypeError(f"Invalid Pokémon class: {pokemon_class}")
+            if upper_zone:
+                pos = upper_zone.pop()
+                self.player_units.append(pokemon_class(pos[0], pos[1], console=self.console, team='player'))
+    
+        self.enemy_units = []
+        for pokemon_class in enemy_pokemons:
+            if not callable(pokemon_class) or not isinstance(pokemon_class, type):  # Vérifie que c'est une classe
+                raise TypeError(f"Invalid Pokémon class: {pokemon_class}")
+            if lower_zone:
+                pos = lower_zone.pop()
+                self.enemy_units.append(pokemon_class(pos[0], pos[1], console=self.console, team='enemy'))
             
         # Générer les positions valides (unités et obstacles exclus)
-        self.obstacles = Obstacle('assets/obstacle.png')
         
         self.valid_positions = self.generate_valid_positions()
         
@@ -95,10 +116,26 @@ class Game:
         # Créer un piège aléatoire
         self.trap = Trap('assets/animations/animation_caitlyne', 'assets/trap_sound.mp3',console=self.console)
         self.trap.generate_traps(GRID_SIZE, num_traps=5, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
-        
-        
-        
-        
+
+    def highlight_units(self, screen):
+        """
+        Met en surbrillance les cases des unités alliées et ennemies.
+    
+        screen : pygame.Surface
+            La surface de l'écran où dessiner les surbrillances.
+        """
+        # Surbrillance verte pour les unités alliées (joueurs)
+        for unit in self.player_units:
+            rect = pygame.Rect(unit.x * CELL_SIZE, unit.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            pygame.draw.rect(screen, (0, 255, 0), rect, 2)  # Vert, bordure de 2px
+    
+        # Surbrillance rouge pour les unités ennemies
+        for unit in self.enemy_units:
+            rect = pygame.Rect(unit.x * CELL_SIZE, unit.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            pygame.draw.rect(screen, (255, 0, 0), rect, 2)  # Rouge, bordure de 2px
+
+            
+            
     def get_unit_positions(self):
         """Retourne la liste des positions occupées par les unités."""
         unit_positions = []
@@ -142,6 +179,40 @@ class Game:
             if (unit.x, unit.y) in source.vision.get_visible_positions():
                 return True
         return False
+    
+    
+    def check_winner(self):
+        """
+        Vérifie si une équipe a gagné le jeu.
+        Si une équipe est vide, elle perd et l'autre équipe gagne.
+        """
+        if not self.player_units:  # Si l'équipe des joueurs est vide
+            self.display_winner("Enemy Team Wins!")
+            return True  # Le jeu est terminé
+        elif not self.enemy_units:  # Si l'équipe ennemie est vide
+            self.display_winner("Player Team Wins!")
+            return True  # Le jeu est terminé
+        return False  # Le jeu continue
+
+
+    def display_winner(self, message):
+        """
+        Affiche le message de victoire à l'écran et termine le jeu.
+        """
+        self.screen.fill(BLACK)  # Efface l'écran
+        font = pygame.font.Font("assets/font.ttf", 60)  # Charge la police
+        text_surface = font.render(message, True, (255, 255, 255))  # Texte blanc
+        text_rect = text_surface.get_rect(center=((WIDTH+600) // 2, HEIGHT // 2))  # Centrer le texte
+        self.screen.blit(text_surface, text_rect)  # Afficher le texte
+        pygame.display.flip()  # Mettre à jour l'écran
+    
+        # Pause pour afficher le message pendant 3 secondes
+        pygame.time.wait(3000)
+        pygame.quit()
+        exit()
+
+
+
 
     
     def handle_player_turn(self):
@@ -150,6 +221,9 @@ class Game:
         """
         current_turn = 'player'
         for selected_unit in self.player_units[:]:
+            
+            if self.check_winner():
+                return
             self.console.add_message("====== Nouvelle unité ======")
             
 
@@ -157,14 +231,14 @@ class Game:
             selected_unit.update_movement_square(GRID_SIZE)
     
             if selected_unit.health <= 0:
-                print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
-                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
+                print(f"{selected_unit.team} unit a ({selected_unit.x}, {selected_unit.y}) est mort.")
+                self.console.add_message(f"{selected_unit.team} {selected_unit.name} à ({selected_unit.x}, {selected_unit.y}) est mort.")
                 self.player_units.remove(selected_unit)
                 continue
     
             if selected_unit.stunned_turns > 0:
                 print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
-                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
+                self.console.add_message(f"{selected_unit.team} {selected_unit.name} à ({selected_unit.x}, {selected_unit.y}) est étourdi et ne peut pas jouer son tour.")
                 selected_unit.stunned_turns -= 1
                 continue
     
@@ -214,7 +288,7 @@ class Game:
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
                                 print(f"Player used skill: {skill.name}")
-                                self.console.add_message(f"Player used skill: {skill.name}")
+                                self.console.add_message(f"Player {selected_unit.name}  a utilisé: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
@@ -229,13 +303,13 @@ class Game:
                             skill = selected_unit.skills[1]  # On prend la seconde compétence (défensive)
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
-                                print(f"{selected_unit.team} used defense skill: {skill.name}")
-                                self.console.add_message(f"{selected_unit.team} used defense skill: {skill.name}")
+                                print(f"Player used skill: {skill.name}")
+                                self.console.add_message(f"Player {selected_unit.name}  a utilisé: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
-                                has_acted = True
+                                has_acted=True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
                                 console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
@@ -245,13 +319,13 @@ class Game:
                             skill = selected_unit.skills[2]  # On prend la troisième compétence
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
-                                print(f"{selected_unit.team} used skill: {skill.name}")
-                                self.console.add_message(f"{selected_unit.team} used skill: {skill.name}")
+                                print(f"Player used skill: {skill.name}")
+                                self.console.add_message(f"Player {selected_unit.name}  a utilisé: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
-                                has_acted = True
+                                has_acted=True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
                                 self.console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
@@ -276,6 +350,8 @@ class Game:
         
         current_turn = 'enemy'
         for selected_unit in self.enemy_units[:]:
+            if self.check_winner():
+                return
             self.console.add_message("====== Nouvelle unité ======")
             
             
@@ -283,13 +359,13 @@ class Game:
             selected_unit.update_movement_square(GRID_SIZE)
     
             if selected_unit.health <= 0:
-                print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
-                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is dead.")
+                print(f"{selected_unit.team} {selected_unit.name} à ({selected_unit.x}, {selected_unit.y}) est mort.")
+                self.console.add_message(f"{selected_unit.team} {selected_unit.name} à ({selected_unit.x}, {selected_unit.y}) est mort.")
                 self.enemy_units.remove(selected_unit)
                 continue
             if selected_unit.stunned_turns > 0:
                 print(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
-                self.console.add_message(f"{selected_unit.team} unit at ({selected_unit.x}, {selected_unit.y}) is stunned and cannot act this turn.")
+                self.console.add_message(f"{selected_unit.team} {selected_unit.name} à ({selected_unit.x}, {selected_unit.y}) est étourdi et ne peut pas jouer son tour.")
                 selected_unit.stunned_turns -= 1
                 continue
     
@@ -337,8 +413,8 @@ class Game:
                             skill = selected_unit.skills[0]
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
-                                print(f"Enemy used skill: {skill.name}")
-                                self.console.add_message(f"Enemy used skill: {skill.name}")
+                                print(f"Enemy {selected_unit.name} used skill: {skill.name}")
+                                self.console.add_message(f"Enemy {selected_unit.name} used skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
@@ -353,8 +429,8 @@ class Game:
                             skill = selected_unit.skills[1]  # On prend la seconde compétence (défensive)
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
-                                print(f"{selected_unit.team} used defense skill: {skill.name}")
-                                self.console.add_message(f"{selected_unit.team} used defense skill: {skill.name}")
+                                print(f"Enemy {selected_unit.name} used skill: {skill.name}")
+                                self.console.add_message(f"Enemy {selected_unit.name} used skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
@@ -370,12 +446,10 @@ class Game:
                             skill = selected_unit.skills[2]  # On prend la troisième compétence
                             cooldown = selected_unit.current_cooldowns[skill.name]
                             if cooldown == 0:
-                                print(f"{selected_unit.team} used skill: {skill.name}")
-                                self.console.add_message(f"{selected_unit.team} used skill: {skill.name}")
+                                print(f"Enemy {selected_unit.name} used skill: {skill.name}")
+                                self.console.add_message(f"Enemy {selected_unit.name} used skill: {skill.name}")
                                 self.execute_skill(selected_unit, skill)
                                 
-                                
-
                                 selected_unit.current_cooldowns[skill.name] = skill.cooldown
                                 print(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
                                 self.console.add_message(f"La compétence {skill.name} est mise en cooldown pour {skill.cooldown} tours.")
@@ -421,12 +495,12 @@ class Game:
         if skill.effect in ["shield", "heal"]:
             if skill.effect == "heal":
                 unit.health = min(unit.health + skill.effect_value, 10)
-                print(f"{unit.team} unit at ({unit.x}, {unit.y}) healed for {skill.effect_value} points. Current health: {unit.health}.")
-                self.console.add_message(f"{unit.team} unit at ({unit.x}, {unit.y}) healed for {skill.effect_value} points. Current health: {unit.health}.")
+                print(f"{unit.team} {unit.name} at ({unit.x}, {unit.y}) s'est soigné à {skill.effect_value} points. PV actuel: {unit.health}.")
+                self.console.add_message(f"{unit.team} {unit.name} à ({unit.x}, {unit.y}) s'est soigné à {skill.effect_value} points. PV actuel: {unit.health}.")
             elif skill.effect == "shield":
                 unit.invulnerable_turns = skill.effect_value
-                print(f"{unit.team} unit at ({unit.x}, {unit.y}) is now invulnerable for {skill.effect_value} turn(s).")
-                self.console.add_message(f"{unit.team} unit at ({unit.x}, {unit.y}) is now invulnerable for {skill.effect_value} turn(s).")
+                print(f"{unit.team} {self.name} à ({unit.x}, {unit.y}) est invulnérable pour  {skill.effect_value} tour(s).")
+                self.console.add_message(f"{unit.team} {self.name} à ({unit.x}, {unit.y}) est invulnérable pour  {skill.effect_value} tour(s).")
     
             # Mettre la compétence en cooldown
             unit.current_cooldowns[skill.name] = skill.cooldown
@@ -478,8 +552,8 @@ class Game:
                                 # Appliquer les effets
                                 if skill.effect == "stun":
                                     target.stunned_turns = skill.effect_value
-                                    print(f"{target.team} unit at ({target.x}, {target.y}) is stunned for {skill.effect_value} turn(s).")
-                                    self.console.add_message(f"{target.team} unit at ({target.x}, {target.y}) is stunned for {skill.effect_value} turn(s).")
+                                    print(f"{target.team} {target.name} at ({target.x}, {target.y}) est étourdi pendant {skill.effect_value} turn(s).")
+                                    self.console.add_message(f"{target.team} {target.name} at ({target.x}, {target.y}) est étourdi pendant {skill.effect_value} tour(s).")
                                  
                             else:
                                 print(f"Aucune cible trouvée à la case ({cursor_x}, {cursor_y}).")
@@ -549,20 +623,21 @@ class Game:
     
         # Dessiner les pièges visibles
         self.trap.draw(self.screen)
+        
     
         # Afficher les unités visibles en fonction du tour
         if current_turn == "player":
-            # Affiche toutes les unités alliées
-            for unit in self.player_units:
-                unit.draw(self.screen)
+        # Affiche toutes les unités alliées
+          for unit in self.player_units:
+              unit.draw(self.screen)
+                
     
             # Affiche les ennemis visibles par les joueurs
-            for enemy in self.enemy_units:
+          for enemy in self.enemy_units:
                 if self.is_unit_visible(enemy, self.player_units):  # Vérifie si visible par les joueurs
                     enemy.draw(self.screen)
     
         elif current_turn == "enemy":
-            # Affiche toutes les unités ennemies
             for enemy in self.enemy_units:
                 enemy.draw(self.screen)
     
@@ -622,11 +697,11 @@ def main_menu(screen):
         
         # Définir les boutons
         PLAY_BUTTON = Button(
-            image=None, pos=(bg_width // 2, bg_height // 2 - 50), text_input="PLAY",
+            image=None, pos=(bg_width // 2, bg_height // 2 -100), text_input="PLAY",
             font=get_font(75), base_color="White", hovering_color="Green"
         )
         QUIT_BUTTON = Button(
-            image=None, pos=(bg_width // 2, bg_height // 2 + 100), text_input="QUIT",
+            image=None, pos=(bg_width // 2, bg_height // 2+ 100 ), text_input="QUIT",
             font=get_font(75), base_color="White", hovering_color="Red"
         )
 
@@ -653,42 +728,43 @@ def main_menu(screen):
 
         
 def main():
-    # Initialisation de Pygame
     pygame.init()
-    
-    # Hauteur pour la barre noire en bas
-    NEW_HEIGHT = HEIGHT + MENU_HEIGHT  # Nouvelle hauteur de l'écran
-    NEW_WIDTH = WIDTH + 600
-    # Modification de l'écran
-    screen = pygame.display.set_mode((NEW_WIDTH, NEW_HEIGHT))
+    screen = pygame.display.set_mode((WIDTH + 600, HEIGHT + MENU_HEIGHT))
     pygame.display.set_caption("Mon jeu de stratégie")
 
     action = main_menu(screen)
 
     if action == "play":
-        game = Game(screen)
+        available_pokemons = [Pikachu, Salameche, Carapuce, Bulbizarre, Magicarpe, Qulbutoke, Chovsouris, Miaouss]
+        print("Sélection des Pokémon pour le joueur...")
+        player_menu = SelectionMenu(screen, available_pokemons)
+        player_pokemons = player_menu.run()
+        print("Sélection des Pokémon pour l'ennemi...")
+        enemy_menu = SelectionMenu(screen, available_pokemons)
+        enemy_pokemons = enemy_menu.run()
 
-    print("Position des pièges générés :")
-    for trap_position in game.trap.positions:
-        print(trap_position)  # Affiche les positions des pièges générés
+        # Création de l'instance du jeu
+        game = Game(screen, player_pokemons, enemy_pokemons)
 
+        # Afficher les positions des pièges après avoir créé l'instance du jeu
+        print("Position des pièges générés :")
+        for trap_position in game.trap.positions:
+            print(trap_position)  # Affiche les positions des pièges générés
 
-    # Boucle principale du jeu
+        
+    # Boucle principale
     while True:
-        # Mettre à jour l'affichage en fonction du tour
-        
-
-        # Gérer le tour actuel
-        
+        if game.check_winner():
+            break  # Quitte la boucle si une équipe gagne
         game.handle_player_turn()
-        
-        
+        if game.check_winner():
+            break  # Vérifiez encore après le tour du joueur
         game.handle_enemy_turn()
-           
-
-        # Terminer le tour
+        if game.check_winner():
+            break  # Vérifiez après le tour de l'ennemi
         game.end_turn()
 
 
+
 if __name__ == "__main__":
-    main() 
+    main()

@@ -11,7 +11,7 @@ class Pikachu(Unit):
     Classe représentant Pikachu, héritant de Unit.
     """
 
-    def __init__(self, x, y,console):
+    def __init__(self, x, y,console,team = 'player'):
         """
         Initialise Pikachu avec des caractéristiques spécifiques.
 
@@ -24,13 +24,12 @@ class Pikachu(Unit):
         """
         # Caractéristiques spécifiques à Pikachu
         self.n=2
-
+        self.name='Pikachu'
         health = 10
-        self.cooldown=2
+        self.cooldown=0
         health_max = 10
-        self.attack_power =2
+        self.attack_power =3
         velocity = 2
-        self.team = 'player'
         self.attack_range = 3  # Portée de l'attaque en nombre de cases
         self.invulnerable_turns=0
 
@@ -48,7 +47,7 @@ class Pikachu(Unit):
 
 
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team ,self.icon, self.transformed_icon, self.transformation_sound,console)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity, team, self.icon, self.transformed_icon, self.transformation_sound, console)
         
         thunderbolt = Skill(name="Éclair", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
         self.add_skills([thunderbolt])
@@ -72,9 +71,10 @@ class Pikachu(Unit):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
             print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
-            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} {self.name} à ({self.x}, {self.y}) a évolué!")                           
             self.icon = self.transformed_icon  # Changer l'icône
             self.health+= 2  # Exemple : augmenter la puissance d'attaque
+            self.n=3
             self.skills[0]= Skill(name="Éclair", attack_range=self.attack_range+1, damage=5, cooldown=self.cooldown,effect="attack", effect_value=5)
             self.skills[1]= Skill(name="Queue de fer", attack_range=self.attack_range+1, damage=0, cooldown=self.cooldown,effect="shield", effect_value=2)
             self.skills[2]= Skill(name="Coups de tonnerre", attack_range=self.attack_range+1, damage=7, cooldown=self.cooldown+4,effect="attack", effect_value=5)
@@ -91,7 +91,7 @@ class Pikachu(Unit):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
             print(f"Pikatchu unit at ({self.x}, {self.y}) died!")  # L'unité est morte
-            self.console.add_message(f"Pikatchu unit at ({self.x}, {self.y}) died!")
+            self.console.add_message(f"{self.team} {self.name}  à ({self.x}, {self.y}) est mort !")
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
 

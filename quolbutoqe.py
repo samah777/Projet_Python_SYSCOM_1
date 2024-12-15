@@ -10,7 +10,7 @@ class Qulbutoke(Unit):
     Classe représentant Qulbutoké, héritant de Unit.
     """
 
-    def __init__(self, x, y,console):
+    def __init__(self, x, y,console,team = 'enemy'):
         """
         Initialise Qulbutoké avec des caractéristiques spécifiques.
 
@@ -23,13 +23,12 @@ class Qulbutoke(Unit):
         """
         # Caractéristiques spécifiques à Qulbutoké
         self.n=2
-
+        self.name='Qulbutoke'
         health = 10
         self.cooldown=2
         health_max = 10
         self.attack_power = 3
         velocity = 2
-        self.team = 'enemy'
         self.attack_range = 3  # Portée de l'attaque en nombre de cases
         self.invulnerable_turns=0
 
@@ -43,7 +42,7 @@ class Qulbutoke(Unit):
         
         self.transformation_sound = None
         # Appeler le constructeur parent avec une icône spécifique à Qulbutoké
-        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team ,self.icon, self.transformed_icon, self.transformation_sound,console)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,team ,self.icon, self.transformed_icon, self.transformation_sound,console)
         
         attack_offensive = Skill(name="Riposte", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown+1,effect="attack", effect_value=5)
         self.add_skills([attack_offensive])
@@ -60,7 +59,7 @@ class Qulbutoke(Unit):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
             print(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
-            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} {self.name} a ({self.x}, {self.y}) a évolué!")
             self.icon = self.transformed_icon  # Changer l'icône
             # self.attack += 2  # Exemple : augmenter la puissance d'attaque
             # self.health += 4
@@ -74,7 +73,7 @@ class Qulbutoke(Unit):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
             print(f"magicarpe unit at ({self.x}, {self.y}) died!")  # L'unité est morte
-            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) died!")
+            self.console.add_message(f"{self.team} {self.name}  à ({self.x}, {self.y}) est mort !")
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
 

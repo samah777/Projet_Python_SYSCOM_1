@@ -9,7 +9,7 @@ class Carapuce(Unit):
     Classe représentant Carapuce, héritant de Unit.
     """
 
-    def __init__(self, x, y,console):
+    def __init__(self, x, y,console,team = 'player'):
         """
         Initialise Carapuce avec des caractéristiques spécifiques.
 
@@ -22,6 +22,7 @@ class Carapuce(Unit):
         """
         # Caractéristiques spécifiques à Carapuce
         self.n=2
+        self.name='Carapuce'
         self.cooldown=2
         health = 10  
         health_max = 10
@@ -47,7 +48,7 @@ class Carapuce(Unit):
         self.transformation_sound = pygame.mixer.Sound('assets\evolution\pokemon.mp3')
         
         # Appeler le constructeur parent avec une icône spécifique à Pikachu
-        super().__init__(x, y, health, health_max, self.attack_power, velocity,self.team ,self.icon, self.transformed_icon, self.transformation_sound,console)
+        super().__init__(x, y, health, health_max, self.attack_power, velocity,team ,self.icon, self.transformed_icon, self.transformation_sound,console)
         # Initialiser les cooldowns à 0 pour chaque compétence
         thunderbolt = Skill(name="Hydrocanon", attack_range=self.attack_range, damage=self.attack_power, cooldown=self.cooldown,effect="attack", effect_value=5)
         self.add_skills([thunderbolt])
@@ -65,11 +66,12 @@ class Carapuce(Unit):
         """Transforme l'unité en une version plus puissante."""
         if self.transformed_icon and not self.is_transformed:
             print(f"carapuce unit at ({self.x}, {self.y}) transforms!")
-            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) transforms!")
+            self.console.add_message(f"{self.team} {self.name} a ({self.x}, {self.y}) a évolué!")
             self.icon = self.transformed_icon  # Changer l'icône
             
             
             self.health+= 3  # Exemple : augmenter la puissance d'attaque
+            self.n=3
             self.skills[0]= Skill(name="Hydrocanon", attack_range=self.attack_range+2, damage=5, cooldown=self.cooldown,effect="attack", effect_value=5)
             self.skills[1]= Skill(name="Etourdi", attack_range=self.attack_range+2, damage=0, cooldown=self.cooldown,effect="shield", effect_value=2)
             self.skills[2]= Skill(name="Laser glace", attack_range=self.attack_range+2, damage=5, cooldown=self.cooldown,effect="attack", effect_value=5)
@@ -85,7 +87,7 @@ class Carapuce(Unit):
         # Vérifier si l'unité doit se transformer
         if self.health <= 0:
             print(f"magicarpe unit at ({self.x}, {self.y}) died!")  # L'unité est morte
-            self.console.add_message(f"{self.team} unit at ({self.x}, {self.y}) died!")
+            self.console.add_message(f"{self.team} {self.name}  à ({self.x}, {self.y}) est mort !")
         elif self.health == 1 and not self.is_transformed:
             self.transform()  # Transforme l'unité si elle atteint 1 PV
             
