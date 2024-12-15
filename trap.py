@@ -47,9 +47,9 @@ class Trap:
 
     def trigger_trap(self, unit):
         """Déclenche l'effet d'un piège."""
-        self.console.add_message(f"{unit.team} unit at ({unit.x}, {unit.y}) stepped on a trap!")
+        self.console.add_message(f"{unit.team} {unit.name} à ({unit.x}, {unit.y}) a marché sur un piège!")
         unit.health -= 4.5
-        self.console.add_message(f"{unit.team} unit's health is now {unit.health:.1f}.")
+        self.console.add_message(f"{unit.team} {unit.name} a maintenant {unit.health:.1f} PV.")
         unit.check_health()
         if (unit.x, unit.y) in self.positions:
             self.visible_traps.append((unit.x, unit.y))

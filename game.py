@@ -312,7 +312,7 @@ class Game:
                                 has_acted=True
                             else:
                                 print(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
-                                console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
+                                self.console.add_message(f"La compétence {skill.name} est en cooldown pour encore {cooldown} tours.")
                                 
     
                         elif event.key == pygame.K_e and len(selected_unit.skills) > 2:
@@ -499,8 +499,8 @@ class Game:
                 self.console.add_message(f"{unit.team} {unit.name} à ({unit.x}, {unit.y}) s'est soigné à {skill.effect_value} points. PV actuel: {unit.health}.")
             elif skill.effect == "shield":
                 unit.invulnerable_turns = skill.effect_value
-                print(f"{unit.team} {self.name} à ({unit.x}, {unit.y}) est invulnérable pour  {skill.effect_value} tour(s).")
-                self.console.add_message(f"{unit.team} {self.name} à ({unit.x}, {unit.y}) est invulnérable pour  {skill.effect_value} tour(s).")
+                print(f"{unit.team} {unit.name} à ({unit.x}, {unit.y}) est invulnérable pour  {skill.effect_value} tour(s).")
+                self.console.add_message(f"{unit.team} {unit.name} à ({unit.x}, {unit.y}) est invulnérable pour  {skill.effect_value} tour(s).")
     
             # Mettre la compétence en cooldown
             unit.current_cooldowns[skill.name] = skill.cooldown
