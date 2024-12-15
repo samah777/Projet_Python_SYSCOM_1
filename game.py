@@ -720,22 +720,23 @@ def main():
     if action == "play":
         available_pokemons = [Pikachu, Salameche, Carapuce, Bulbizarre, Magicarpe, Qulbutoke, Chovsouris, Miaouss]
         print("Sélection des Pokémon pour le joueur...")
-        player_menu = SelectionMenu(screen, available_pokemons)
+        player_menu = SelectionMenu(screen, available_pokemons,1)
         player_pokemons = player_menu.run()
         print("Sélection des Pokémon pour l'ennemi...")
-        enemy_menu = SelectionMenu(screen, available_pokemons)
+        enemy_menu = SelectionMenu(screen, available_pokemons,2)
+
         enemy_pokemons = enemy_menu.run()
 
         # Création de l'instance du jeu
         game = Game(screen, player_pokemons, enemy_pokemons)
 
-        # Afficher les positions des pièges après avoir créé l'instance du jeu
-        print("Position des pièges générés :")
-        for trap_position in game.trap.positions:
-            print(trap_position)  # Affiche les positions des pièges générés
-        print("Position des étoiles générés :")
-        for bonus_position in game.bonus.positions:
-            print(bonus_position)  # Affiche les positions des étoiles générés
+        # # Afficher les positions des pièges après avoir créé l'instance du jeu
+        # print("Position des pièges générés :")
+        # for trap_position in game.trap.positions:
+        #     print(trap_position)  # Affiche les positions des pièges générés
+        # print("Position des étoiles générés :")
+        # for bonus_position in game.bonus.positions:
+        #     print(bonus_position)  # Affiche les positions des étoiles générés
 
         
     # Boucle principale

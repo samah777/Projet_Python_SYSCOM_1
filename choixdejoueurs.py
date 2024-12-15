@@ -10,7 +10,7 @@ class SelectionMenu:
     Classe pour gérer le menu de sélection des Pokémon.
     """
 
-    def __init__(self, screen, available_pokemons):
+    def __init__(self, screen, available_pokemons,current_player):
         """
         Initialise le menu de sélection des Pokémon.
 
@@ -28,6 +28,8 @@ class SelectionMenu:
         self.font = get_font(30)  # Police pour le texte.
         self.alert_font = get_font(20)  # Police pour les messages d'alerte.
         self.selection_font = get_font(25)  # Police pour les instructions.
+        self.current_player = current_player
+        # Commence avec Joueur 1
 
         # Charger les sprites des Pokémon
         self.pokemon_sprites = {
@@ -46,10 +48,14 @@ class SelectionMenu:
         # Affiche le titre.
         title = self.font.render("Choisissez vos Pokémon (Max 4) : ", True, (255, 255, 255))
         self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 20))
-        Joueur_1 = self.font.render(" Joueur 1 ", True, (0, 255, 0))
-        self.screen.blit(Joueur_1, (WIDTH , 20))
 
-        # Affiche les Pokémon disponibles.
+        # Texte du joueur en cours
+        joueur_text = f" Joueur {self.current_player} "
+        joueur_color = (0, 255, 0)  if self.current_player ==1 else (255,0,0)
+        Joueur = self.font.render(joueur_text, True, joueur_color)
+        self.screen.blit(Joueur, (WIDTH , 20))  # Positionnement centré
+
+        # Affiche les Pokémon disponibles
         y_offset = 100
         for i, pokemon_class in enumerate(self.available_pokemons):
             # Sprite du Pokémon
@@ -77,7 +83,7 @@ class SelectionMenu:
             selected_name = self.font.render(pokemon_class.__name__, True, (0, 255, 0))
             self.screen.blit(selected_name, (WIDTH - 300, 140 + i * 60))
 
-        # Affiche un message d'alerte si nécessaire
+        # Message d'alerte si nécessaire
         if len(self.selected_pokemons) == self.max_selection:
             alert = self.alert_font.render("Max atteint ! Appuyez sur Entrée pour valider.", True, (255, 0, 0))
             self.screen.blit(alert, (100, HEIGHT - 50))
@@ -133,13 +139,18 @@ class SelectionMenu:
         """
         Ajoute un effet de transition avec un fondu au noir lors de la validation.
         """
-        fade_surface = pygame.Surface((WIDTH+600, HEIGHT+MENU_HEIGHT))
+        fade_surface = pygame.Surface((WIDTH + 600, HEIGHT + MENU_HEIGHT))
         fade_surface.fill((0, 0, 0))  # Couleur noire
+        self.current_player=2
+
         for alpha in range(0, 255, 10):  # Graduellement augmenter l'opacité
             fade_surface.set_alpha(alpha)
             self.screen.blit(fade_surface, (0, 0))
             pygame.display.flip()
             pygame.time.delay(50)  # Délai pour lisser la transition
+
+
+     
 
     def run(self):
         """
