@@ -1,6 +1,7 @@
 import pygame
 import random
-from unit import Unit
+from unit import *
+from buton import *
 from constante import *
 from pikachu import *
 from salameche import *
@@ -13,13 +14,11 @@ from chausouri import *
 from miaous import *
 import os
 from Skillmenu import SkillMenu
-from Menu import *
-from buton import *
 from trap import *
 from PIL import Image
 from console import Console
 from choixdejoueurs import *
-
+from healthbonus import HealthBonus
 
 class Obstacle:
     """
@@ -51,8 +50,6 @@ class Obstacle:
         """Dessine les obstacles sur l'écran en utilisant l'image."""
         for x, y in self.positions:
             screen.blit(self.obstacle_image, (x * CELL_SIZE, y * CELL_SIZE))  # Dessiner l'image de l'obstacle à la position correspondante
-
-
 
 class Game:
     """
@@ -112,6 +109,9 @@ class Game:
         
         self.obstacles.generate_obstacles(GRID_SIZE, num_obstacles=30, unit_positions=self.get_unit_positions())
         
+        # Créer un piège et un bonus aléatoires
+        self.bonus = HealthBonus('assets/star.jpg', 'assets/star_sound.mp3',console=self.console)
+        self.bonus.generate_bonus(GRID_SIZE, num_bonus=7, obstacles=self.obstacles.positions, valid_positions=self.valid_positions)
            
         # Créer un piège aléatoire
         self.trap = Trap('assets/animations/animation_caitlyne', 'assets/trap_sound.mp3',console=self.console)
@@ -210,10 +210,6 @@ class Game:
         pygame.time.wait(3000)
         pygame.quit()
         exit()
-
-
-
-
     
     def handle_player_turn(self):
         """
@@ -278,6 +274,10 @@ class Game:
                                         self.player_units.remove(selected_unit)
                                         has_acted = True
                                         break
+
+                                if self.bonus.check_for_bonus(selected_unit.x, selected_unit.y):
+                                    self.bonus.trigger_bonus(selected_unit)  # generer l'etoile et augmenter les points de vie
+
                             else:
                                 print(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
                                 self.console.add_message(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
@@ -338,10 +338,6 @@ class Game:
                     self.flip_display(current_turn)
     
             selected_unit.is_selected = False
-
-    
-
-    
     
     def handle_enemy_turn(self):
         """
@@ -404,6 +400,8 @@ class Game:
                                         self.enemy_units.remove(selected_unit)
                                         has_acted = True
                                         break
+                                if self.bonus.check_for_bonus(selected_unit.x, selected_unit.y):
+                                    self.bonus.trigger_bonus(selected_unit)  # generer l'etoile et augmenter les points de viee
                             else:
                                 print(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
                                 self.console.add_message(f"Déplacement interdit à ({new_x}, {new_y}). En dehors du carré de mouvement.")
@@ -466,18 +464,6 @@ class Game:
                     self.flip_display(current_turn)
     
             selected_unit.is_selected = False
-
-
-
-
-
-
-        
-
-
-
-
-
 
     def execute_skill(self, unit, skill):
         """
@@ -590,9 +576,6 @@ class Game:
             if unit.invulnerable_turns > 0:
                 unit.invulnerable_turns -= 1
 
-    
-
- 
     #2 joueurs
     def flip_display(self, current_turn, skill_position=None, skill_mode=False):
         """
@@ -621,6 +604,9 @@ class Game:
         # Dessiner les obstacles
         self.obstacles.draw(self.screen)
     
+        # Dessiner les étoiles
+        self.bonus.draw(self.screen)
+
         # Dessiner les pièges visibles
         self.trap.draw(self.screen)
         
@@ -723,9 +709,6 @@ def main_menu(screen):
                     exit()
 
         pygame.display.update()
-
-
-
         
 def main():
     pygame.init()
@@ -750,6 +733,9 @@ def main():
         print("Position des pièges générés :")
         for trap_position in game.trap.positions:
             print(trap_position)  # Affiche les positions des pièges générés
+        print("Position des étoiles générés :")
+        for bonus_position in game.bonus.positions:
+            print(bonus_position)  # Affiche les positions des étoiles générés
 
         
     # Boucle principale
@@ -763,7 +749,6 @@ def main():
         if game.check_winner():
             break  # Vérifiez après le tour de l'ennemi
         game.end_turn()
-
 
 
 if __name__ == "__main__":
